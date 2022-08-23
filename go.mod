@@ -5,6 +5,11 @@ go 1.18
 require google.golang.org/api v0.92.0
 
 require (
+	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/slack-go/slack v0.11.2 // indirect
+)
+
+require (
 	cloud.google.com/go/compute v1.7.0 // indirect
 	github.com/go-co-op/gocron v1.16.2 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect

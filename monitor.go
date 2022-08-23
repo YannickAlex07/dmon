@@ -6,9 +6,21 @@ import (
 
 	"github.com/go-co-op/gocron"
 	"github.com/yannickalex07/dataflow-monitor/dataflow"
+	"github.com/yannickalex07/dataflow-monitor/slack"
 )
 
+func handleError(cfg Config, job dataflow.Job) {
+	// Get messages from Dataflow API
+	// ...
+
+	// Build blocks and send error message
+	blocks := slack.ErrorBlocks(job)
+	slack.SendMessage(cfg.Slack.Token, cfg.Slack.Channel, blocks)
+}
+
 func startMonitor(cfg Config) {
+	fmt.Printf("Starting monitoring...\n")
+
 	timeout := 1 * time.Minute // move to config
 
 	// Prepare func
@@ -20,17 +32,20 @@ func startMonitor(cfg Config) {
 			return
 		}
 
+		// update time
+		previousRunTime := lastRun
+		lastRun = time.Now()
+
 		// Check Newer Jobs
 		for _, job := range jobs {
 			// Check Status Updates
-			if job.Status.IsNewer(lastRun) {
+			if job.Status.IsNewer(previousRunTime) {
 				if job.Status.IsFailed() {
-					fmt.Printf("Job %s failed\n", job.Name)
-				} else if job.Status.IsDone() {
-					fmt.Printf("Job %s finished\n", job.Name)
+					go handleError(cfg, job)
 				}
 			}
 
+			// Make sure to cache jobs that are running to long
 			if job.Status.IsRunning() {
 				runTime := time.Since(job.StartTime)
 				if runTime > timeout {
@@ -38,13 +53,10 @@ func startMonitor(cfg Config) {
 				}
 			}
 		}
-
-		// update time
-		lastRun = time.Now()
 	}
 
 	// Schedule func
 	s := gocron.NewScheduler(time.UTC)
-	s.Every(30).Seconds().Do(f)
+	s.Every(5).Minute().Do(f)
 	s.StartBlocking()
 }

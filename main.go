@@ -12,6 +12,10 @@ type Config struct {
 		ID       string `yaml:"id"`
 		Location string `yaml:"location"`
 	} `yaml:"project"`
+	Slack struct {
+		Token   string `yaml:"token"`
+		Channel string `yaml:"channel"`
+	} `yaml:"slack"`
 }
 
 func parseConfig(path string) *Config {
@@ -21,7 +25,7 @@ func parseConfig(path string) *Config {
 	}
 
 	var c *Config
-	err = yaml.Unmarshal(yamlFile, c)
+	err = yaml.Unmarshal(yamlFile, &c)
 	if err != nil {
 		panic("Failed to read config file with err " + err.Error())
 	}
@@ -31,7 +35,7 @@ func parseConfig(path string) *Config {
 
 func main() {
 	// Parse CLI Arguments
-	configPath := flag.String("config", "config.yaml", "Path to the config file")
+	configPath := flag.String("c", "./config.yaml", "Path to the config file")
 	flag.Parse()
 
 	// Parse Config
