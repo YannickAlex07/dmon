@@ -25,6 +25,7 @@ func startMonitor(cfg Config) {
 
 	// Prepare func
 	lastRun := time.Now()
+	lastRun = lastRun.Add(time.Duration(-1) * time.Hour)
 	f := func() {
 		// Get All Jobs
 		jobs, err := dataflow.ListJobs(cfg.Project.ID, cfg.Project.Location)

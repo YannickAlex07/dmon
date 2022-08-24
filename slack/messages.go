@@ -17,12 +17,15 @@ func ErrorBlocks(job dataflow.Job) []slack.Block {
 
 	// Info Section
 	infoText := fmt.Sprintf("The job `%s` with the job id `%s` failed!", job.Name, job.Id)
-	infoBlock := slack.NewTextBlockObject("mrkdwn", infoText, true, false)
-	blocks = append(blocks, infoBlock)
+	infoTextBlock := slack.NewTextBlockObject("mrkdwn", infoText, false, false)
+	infoSectionBlock := slack.NewSectionBlock(infoTextBlock, nil, nil)
+	blocks = append(blocks, infoSectionBlock)
 
 	// GCP Button
-	gcpTextBlock := slack.NewTextBlockObject("plain_text", "Open in Dataflow", true, false)
+	gcpTextBlock := slack.NewTextBlockObject("plain_text", "Open in Dataflow", false, false)
 	gcpButtonBlock := slack.NewButtonBlockElement("1", "1", gcpTextBlock)
+	gcpButtonBlock.URL = "https://www.google.com"
+
 	gcpButtonActionBlock := slack.NewActionBlock("1", gcpButtonBlock)
 	blocks = append(blocks, gcpButtonActionBlock)
 
@@ -33,8 +36,9 @@ func ErrorBlocks(job dataflow.Job) []slack.Block {
 
 	// Error Text
 	errorText := fmt.Sprintf("The last error message was: ```%s```", "**NOT IMPLEMENTED YET**")
-	errorBlock := slack.NewTextBlockObject("mrkdwn", errorText, true, false)
-	blocks = append(blocks, errorBlock)
+	errorTextBlock := slack.NewTextBlockObject("mrkdwn", errorText, false, false)
+	errorSectionBlock := slack.NewSectionBlock(errorTextBlock, nil, nil)
+	blocks = append(blocks, errorSectionBlock)
 
 	return blocks
 }
@@ -44,6 +48,6 @@ func SendMessage(token string, channel string, blocks []slack.Block) {
 
 	_, _, _, err := client.SendMessage(channel, slack.MsgOptionBlocks(blocks...))
 	if err != nil {
-		fmt.Printf("Failed to Send Message!")
+		fmt.Printf("Failed to Send Message with error: %s!\n", err.Error())
 	}
 }
