@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
+	"os"
 
 	"gopkg.in/yaml.v3"
 )
@@ -19,7 +19,7 @@ type Config struct {
 }
 
 func parseConfig(path string) *Config {
-	yamlFile, err := ioutil.ReadFile(path)
+	yamlFile, err := os.ReadFile(path)
 	if err != nil {
 		panic("Failed to read config file with err " + err.Error())
 	}

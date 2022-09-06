@@ -11,25 +11,33 @@ import (
 
 func handleError(cfg Config, job dataflow.Job) {
 	// Get messages from Dataflow API
-	// ...
+	errorMessages, err := dataflow.ListMessages(cfg.Project.ID, cfg.Project.Location, job.Id, true)
+	if err != nil {
+		fmt.Printf("Failed to get Messages")
+		return
+	}
 
-	// Build blocks and send error message
-	blocks := slack.ErrorBlocks(job)
-	slack.SendMessage(cfg.Slack.Token, cfg.Slack.Channel, blocks)
+	// Send Error Message
+	slack.SendErrorMessage(cfg.Slack.Token, cfg.Slack.Channel, job, errorMessages, cfg.Project.ID, cfg.Project.Location)
+}
+
+func handleTimeout(cfg Config, job dataflow.Job) {
+	fmt.Printf("Job %s is running too long", job.Name)
 }
 
 func startMonitor(cfg Config) {
 	fmt.Printf("Starting monitoring...\n")
 
 	timeout := 1 * time.Minute // move to config
+	timeoutMap := make(map[string]bool)
 
 	// Prepare func
 	lastRun := time.Now()
-	lastRun = lastRun.Add(time.Duration(-1) * time.Hour)
 	f := func() {
 		// Get All Jobs
 		jobs, err := dataflow.ListJobs(cfg.Project.ID, cfg.Project.Location)
 		if err != nil {
+			fmt.Printf("Failed to list jobs with %s", err.Error())
 			return
 		}
 
@@ -49,8 +57,11 @@ func startMonitor(cfg Config) {
 			// Make sure to cache jobs that are running to long
 			if job.Status.IsRunning() {
 				runTime := time.Since(job.StartTime)
-				if runTime > timeout {
-					fmt.Printf("Job %s is running for %s\n", job.Name, runTime)
+				_, ok := timeoutMap[job.Id]
+
+				if runTime > timeout && !ok {
+					handleTimeout(cfg, job)
+					timeoutMap[job.Id] = true
 				}
 			}
 		}
