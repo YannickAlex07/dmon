@@ -1,4 +1,4 @@
-module github.com/yannickalex07/dataflow-monitor
+module github.com/yannickalex07/dmon
 
 go 1.18
 

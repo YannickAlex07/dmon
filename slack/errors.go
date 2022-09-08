@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/slack-go/slack"
-	"github.com/yannickalex07/dataflow-monitor/dataflow"
+	"github.com/yannickalex07/dmon/dataflow"
 )
 
 func errorBlocks(job dataflow.Job, messages []dataflow.Message, projectId string, location string) []slack.Block {

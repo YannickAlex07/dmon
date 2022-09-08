@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/go-co-op/gocron"
-	"github.com/yannickalex07/dataflow-monitor/dataflow"
-	"github.com/yannickalex07/dataflow-monitor/slack"
+	"github.com/yannickalex07/dmon/dataflow"
+	"github.com/yannickalex07/dmon/slack"
 )
 
 func handleError(cfg Config, job dataflow.Job) {
