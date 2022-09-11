@@ -2,45 +2,35 @@ package main
 
 import (
 	"flag"
-	"os"
 
-	"gopkg.in/yaml.v3"
+	"github.com/yannickalex07/dmon/api"
+	"github.com/yannickalex07/dmon/config"
+	"github.com/yannickalex07/dmon/interfaces"
+	"github.com/yannickalex07/dmon/monitor"
+	"github.com/yannickalex07/dmon/slack"
 )
 
-type Config struct {
-	Project struct {
-		ID       string `yaml:"id"`
-		Location string `yaml:"location"`
-	} `yaml:"project"`
-	Slack struct {
-		Token   string `yaml:"token"`
-		Channel string `yaml:"channel"`
-	} `yaml:"slack"`
-}
-
-func parseConfig(path string) *Config {
-	yamlFile, err := os.ReadFile(path)
-	if err != nil {
-		panic("Failed to read config file with err " + err.Error())
-	}
-
-	var c *Config
-	err = yaml.Unmarshal(yamlFile, &c)
-	if err != nil {
-		panic("Failed to read config file with err " + err.Error())
-	}
-
-	return c
-}
-
 func main() {
-	// Parse CLI Arguments
-	configPath := flag.String("c", "./config.yaml", "Path to the config file")
+	// parse CLI arguments
+	configPath := flag.String("config", "./config.yaml", "Path to the config file")
 	flag.Parse()
 
-	// Parse Config
-	cfg := parseConfig(*configPath)
+	// parse Config
+	cfg, err := config.Read(*configPath)
+	if err != nil {
+		panic("Failed to parse config with error: error")
+	}
 
-	// Start Monitor
-	startMonitor(*cfg)
+	// build handlers
+	handlers := make([]interfaces.Handler, 0)
+
+	// slack handler
+	slackHandler := slack.SlackHandler{
+		Token:   cfg.Slack.Token,
+		Channel: cfg.Slack.Channel,
+	}
+	handlers = append(handlers, slackHandler)
+
+	// start monitor
+	monitor.Start(*cfg, api.API{}, handlers)
 }
