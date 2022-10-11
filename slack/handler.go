@@ -17,7 +17,9 @@ func (s SlackHandler) HandleError(cfg models.Config, job models.Job, messages []
 	s.send(blocks)
 }
 
-func (s SlackHandler) HandleTimeout(cfg models.Config, job models.Job) {}
+func (s SlackHandler) HandleTimeout(cfg models.Config, job models.Job) {
+	// TODO: Implement Timeout Handler
+}
 
 func (s SlackHandler) send(blocks []slack.Block) {
 	client := slack.New(s.Token)
