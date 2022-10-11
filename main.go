@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+	"os"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/yannickalex07/dmon/api"
 	"github.com/yannickalex07/dmon/config"
 	"github.com/yannickalex07/dmon/interfaces"
@@ -11,6 +13,7 @@ import (
 )
 
 func main() {
+
 	// parse CLI arguments
 	configPath := flag.String("config", "./config.yaml", "Path to the config file")
 	flag.Parse()
@@ -20,6 +23,19 @@ func main() {
 	if err != nil {
 		panic("Failed to parse config with error: error")
 	}
+
+	// setup logging
+	if cfg.Logging.Verbose {
+		log.SetLevel(log.DebugLevel)
+	} else {
+		log.SetLevel(log.InfoLevel)
+	}
+
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors: true,
+		FullTimestamp: true,
+	})
+	log.SetOutput(os.Stdout)
 
 	// build handlers
 	handlers := make([]interfaces.Handler, 0)
