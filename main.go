@@ -18,7 +18,7 @@ func main() {
 	configPath := flag.String("config", "./config.yaml", "Path to the config file")
 	flag.Parse()
 
-	// parse Config
+	// parse config
 	cfg, err := config.Read(*configPath)
 	if err != nil {
 		panic("Failed to parse config with error: error")

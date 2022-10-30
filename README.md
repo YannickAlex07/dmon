@@ -4,11 +4,7 @@
 
 ### Usage
 
-To use `dmon` install it ...
-
-```bash
-<install here>
-```
+To use `dmon` download the newest release from the `Release`-tab of this GitHub repository.
 
 Then create a config file (structure is documented [below](#config)) and run `dmon` like this:
 
@@ -81,7 +77,7 @@ timeout:
   max_timeout_duration: 10
 ```
 
-Controls the maximal timout in minutes for jobs. If a job runs for longer than the specified amount, a timeout notification will be triggered for that job. This does not apply to streaming jobs!
+Controls the maximal timout in minutes for a job. If a job runs for longer than the specified amount, a timeout notification will be triggered for that job. This does not apply to streaming jobs!
 
 #### Expire Timeout Duration
 
@@ -90,7 +86,9 @@ timeout:
   expire_timeout_duration: 10
 ```
 
-...
+dmon keeps a list of all the job ID that triggered a timeout notification - this is done to not send out a timout notification for every check cycle. This setting controls after how many minutes a job is removed from this list - meaning a new timeout notification will be send out on the next check.
+
+To always send a notification on each check cycle, set this lower than the `request_interval`.
 
 ### Project
 
@@ -101,7 +99,7 @@ project:
   id: my-google-project
 ```
 
-...
+The GCP project that dmon should monitor Dataflow jobs in.
 
 #### Location
 
@@ -110,7 +108,7 @@ project:
   location: europe-west4
 ```
 
-...
+The location that the Dataflow jobs run in. 
 
 ### Slack
 
@@ -121,16 +119,16 @@ slack:
   token: my-secret-token
 ```
 
-...
+The Slack token that dmon will use for authentication. Be aware that the Token needs permission to send messages - checkout the Slack documentation about this.
 
 #### Channel
 
 ```yaml
 slack:
-  channel: my-google-project
+  channel: my-slack-channel
 ```
 
-...
+The Slack channel that dmon will its messages into.
 
 #### Include Error Section
 
@@ -139,7 +137,8 @@ slack:
   include_error_section: true
 ```
 
-...
+If this is enabled, the last error message of the error will be attached to the
+slack message.
 
 #### Include Dataflow Button
 
@@ -148,4 +147,5 @@ slack:
   include_dataflow_button: true
 ```
 
-...
+If this is enabled, a "Open in Dataflow"-button will be attached to the message. This button
+will open the Dataflow UI of the job.
