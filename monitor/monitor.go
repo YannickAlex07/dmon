@@ -40,52 +40,51 @@ func Monitor(cfg models.Config, api interfaces.API, handlers []interfaces.Handle
 				log.Info("Job %s has new failed status", job.Id)
 
 				// requesting error messages from Dataflow
-				log.Infof("Requesting error messages for job %s", job.Id)
+				log.Infof("Requesting error log entries for job %s", job.Id)
 
-				messages, err := api.Messages(cfg.Project.Id, cfg.Project.Location, job.Id)
+				entries, err := api.ErrorLogs(cfg.Project.Id, cfg.Project.Location, job.Id)
 				if err != nil {
-					log.Errorf("Failed to query error messages for job %s with error %s", job.Id, err.Error())
+					log.Errorf("Failed to query error entries for job %s with error %s", job.Id, err.Error())
 					return
 				}
 
-				log.Debugf("Found %d error messages for job %s", len(messages), job.Id)
+				log.Debugf("Found %d error entries for job %s", len(entries), job.Id)
 
 				// notifying handlers
 				log.Infof("Notifying handlers for failed job %s", job.Id)
 
 				for _, handler := range handlers {
-					handler.HandleError(cfg, job, messages)
+					handler.HandleError(cfg, job, entries)
 				}
 
 				log.Debugf("Notified handlers for job %s", job.Id)
 			}
+		}
 
-			// handeling job timeout
-			log.Info("Checking for running batch jobs.")
+		if job.Status.IsRunning() && !job.IsStreaming() {
 
-			if job.Status.IsRunning() && !job.IsStreaming() {
-				log.Debugf("Batch job %s is currently running", job.Id)
+			log.Debugf("Found running batch job %s", job.Id)
+			totalRunTime := time.Since(job.StartTime)
 
-				totalRunTime := time.Since(job.StartTime)
+			// check if time runs longer than allowed
+			log.Debugf("Checking if job %s has timeouted", job.Id)
 
-				// check if time runs longer than allowed
-				log.Debugf("Checking if job %s has timeouted", job.Id)
+			if totalRunTime > cfg.MaxTimeoutDuration() {
 
-				if totalRunTime > cfg.MaxTimeoutDuration() {
-					log.Infof("Job %s crossed max allowed timeout duration", job.Id)
+				log.Infof("Job %s crossed max allowed timeout duration with a total runtime of %s", job.Id, totalRunTime)
 
-					// check if notification for job was already send
-					wasNotified := stateStore.WasTimeoutHandled(job.Id)
-					if !wasNotified {
-						log.Infof("Timeout for job %s was not yet handled - handeling it now", job.Id)
+				// check if notification for job was already send
+				wasNotified := stateStore.WasTimeoutHandled(job.Id)
+				if !wasNotified {
 
-						for _, handler := range handlers {
-							handler.HandleTimeout(cfg, job)
-						}
+					log.Infof("Timeout for job %s was not yet handled - handeling it now", job.Id)
 
-						stateStore.TimeoutHandled(job.Id)
-						log.Infof("Timeout of job %s was handled", job.Id)
+					for _, handler := range handlers {
+						handler.HandleTimeout(cfg, job)
 					}
+
+					stateStore.TimeoutHandled(job.Id)
+					log.Infof("Timeout of job %s was handled", job.Id)
 				}
 			}
 		}

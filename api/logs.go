@@ -9,7 +9,7 @@ import (
 	dataflow "google.golang.org/api/dataflow/v1b3"
 )
 
-func (api API) Messages(project string, location string, jobId string) ([]models.Message, error) {
+func (api API) ErrorLogs(project string, location string, jobId string) ([]models.LogEntry, error) {
 	ctx := context.Background()
 
 	// create service and request
@@ -22,23 +22,27 @@ func (api API) Messages(project string, location string, jobId string) ([]models
 	req := jobService.List(project, location, jobId)
 
 	// request list of jobs
-	var messages []models.Message
+	var entries []models.LogEntry
 	err = req.Pages(ctx, func(res *dataflow.ListJobMessagesResponse) error {
 		for _, message := range res.JobMessages {
+			// skip any entry that is not an error
+			if message.MessageImportance != "JOB_MESSAGE_ERROR" {
+				continue
+			}
 
 			// parse timestamps
 			t, err := util.ParseTimestamp(message.Time)
 			if err != nil {
-				return errors.New("failed to parse message time")
+				return errors.New("failed to parse entry time")
 			}
 
-			// add message
-			m := models.Message{
+			// add entry
+			e := models.LogEntry{
 				Text: message.MessageText,
 				Time: t,
 			}
 
-			messages = append(messages, m)
+			entries = append(entries, e)
 		}
 
 		return nil
@@ -48,5 +52,5 @@ func (api API) Messages(project string, location string, jobId string) ([]models
 		return nil, err
 	}
 
-	return messages, nil
+	return entries, nil
 }

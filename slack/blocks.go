@@ -8,7 +8,7 @@ import (
 	"github.com/yannickalex07/dmon/models"
 )
 
-func createErrorBlocks(cfg models.Config, job models.Job, messages []models.Message) []slack.Block {
+func createErrorBlocks(cfg models.Config, job models.Job, entries []models.LogEntry) []slack.Block {
 	blocks := make([]slack.Block, 0)
 
 	// Title
@@ -39,7 +39,7 @@ func createErrorBlocks(cfg models.Config, job models.Job, messages []models.Mess
 		blocks = append(blocks, errorTitleHeaderBlock)
 
 		// Error Text
-		msgParts := strings.Split(messages[0].Text, "\n")
+		msgParts := strings.Split(entries[0].Text, "\n")
 		msg := msgParts[len(msgParts)-2] // last line is a blank line - before that comes the last error message
 		errorText := fmt.Sprintf("The last error message was: ```%s```", msg)
 

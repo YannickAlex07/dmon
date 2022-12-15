@@ -5,6 +5,6 @@ import (
 )
 
 type Handler interface {
-	HandleError(cfg models.Config, job models.Job, messages []models.Message)
+	HandleError(cfg models.Config, job models.Job, entries []models.LogEntry)
 	HandleTimeout(cfg models.Config, job models.Job)
 }

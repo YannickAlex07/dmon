@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-type Message struct {
+type LogEntry struct {
 	Text string
 	Time time.Time
 }
