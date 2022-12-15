@@ -12,8 +12,8 @@ type SlackHandler struct {
 	Channel string
 }
 
-func (s SlackHandler) HandleError(cfg models.Config, job models.Job, messages []models.Message) {
-	blocks := createErrorBlocks(cfg, job, messages)
+func (s SlackHandler) HandleError(cfg models.Config, job models.Job, entries []models.LogEntry) {
+	blocks := createErrorBlocks(cfg, job, entries)
 	s.send(blocks)
 }
 

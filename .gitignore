@@ -19,3 +19,5 @@ test.yaml
 config.yaml
 config.yml
 dist/
+
+tmp/
