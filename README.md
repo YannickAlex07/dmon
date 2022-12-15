@@ -9,7 +9,7 @@ To use `dmon` download the newest release from the `Release`-tab of this GitHub 
 Then create a config file (structure is documented [below](#config)) and run `dmon` like this:
 
 ```bash
-dmon -c path/to/config.yml
+dmon -config path/to/config.yml
 ```
 
 ### Why was it developed?
