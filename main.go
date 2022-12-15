@@ -9,9 +9,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/yannickalex07/dmon/api"
 	"github.com/yannickalex07/dmon/config"
+	"github.com/yannickalex07/dmon/handlers/slack"
 	"github.com/yannickalex07/dmon/interfaces"
 	"github.com/yannickalex07/dmon/monitor"
-	"github.com/yannickalex07/dmon/slack"
 	"github.com/yannickalex07/dmon/storage"
 )
 

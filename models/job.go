@@ -16,6 +16,10 @@ func (j Job) IsStreaming() bool {
 	return j.Type == "JOB_TYPE_STREAMING"
 }
 
+func (j Job) Runtime() time.Duration {
+	return time.Since(j.StartTime)
+}
+
 // STATUS
 
 type Status struct {

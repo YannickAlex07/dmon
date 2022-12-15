@@ -24,11 +24,11 @@ func NewMemoryStore(ttl time.Duration) *MemoryStorage {
 	}
 }
 
-func (s MemoryStorage) GetLatestRunTime() time.Time {
+func (s MemoryStorage) GetLatestRuntime() time.Time {
 	return s.lastRunTime
 }
 
-func (s *MemoryStorage) SetLatestRunTime(newRunTime time.Time) {
+func (s *MemoryStorage) SetLatestRuntime(newRunTime time.Time) {
 	s.lastRunTime = newRunTime
 }
 

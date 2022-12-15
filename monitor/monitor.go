@@ -23,7 +23,7 @@ func Monitor(cfg models.Config, api interfaces.API, handlers []interfaces.Handle
 	log.Debugf("Found %d jobs", len(jobs))
 
 	// checking job status
-	lastRunTime := stateStore.GetLatestRunTime()
+	lastRunTime := stateStore.GetLatestRuntime()
 
 	for _, job := range jobs {
 		// job was updated after last run
@@ -64,14 +64,14 @@ func Monitor(cfg models.Config, api interfaces.API, handlers []interfaces.Handle
 		if job.Status.IsRunning() && !job.IsStreaming() {
 
 			log.Debugf("Found running batch job %s", job.Id)
-			totalRunTime := time.Since(job.StartTime)
+			totalRunTime := job.Runtime()
 
 			// check if time runs longer than allowed
 			log.Debugf("Checking if job %s has timeouted", job.Id)
 
 			if totalRunTime > cfg.MaxTimeoutDuration() {
 
-				log.Infof("Job %s crossed max allowed timeout duration with a total runtime of %s", job.Id, totalRunTime)
+				log.Infof("Job %s crossed max allowed timeout duration with a total runtime of %s", job.Id, totalRunTime.Round(time.Second))
 
 				// check if notification for job was already send
 				wasNotified := stateStore.TimeoutAlreadyHandled(job.Id)
@@ -90,6 +90,6 @@ func Monitor(cfg models.Config, api interfaces.API, handlers []interfaces.Handle
 		}
 	}
 
-	stateStore.SetLatestRunTime(time.Now().UTC())
+	stateStore.SetLatestRuntime(time.Now().UTC())
 	log.Info("Run finished.")
 }
