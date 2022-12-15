@@ -1,7 +1,7 @@
 package slack
 
 import (
-	"fmt"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/slack-go/slack"
 	"github.com/yannickalex07/dmon/models"
@@ -18,7 +18,8 @@ func (s SlackHandler) HandleError(cfg models.Config, job models.Job, entries []m
 }
 
 func (s SlackHandler) HandleTimeout(cfg models.Config, job models.Job) {
-	// TODO: Implement Timeout Handler
+	blocks := createTimeoutBlocks(cfg, job)
+	s.send(blocks)
 }
 
 func (s SlackHandler) send(blocks []slack.Block) {
@@ -26,6 +27,6 @@ func (s SlackHandler) send(blocks []slack.Block) {
 
 	_, _, _, err := client.SendMessage(s.Channel, slack.MsgOptionBlocks(blocks...))
 	if err != nil {
-		fmt.Printf("Failed to Send Message with error: %s!\n", err.Error())
+		log.Errorf("Failed to Send Message with error: %s!\n", err.Error())
 	}
 }
