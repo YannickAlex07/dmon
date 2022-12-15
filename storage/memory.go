@@ -32,7 +32,7 @@ func (s *MemoryStorage) SetLatestRunTime(newRunTime time.Time) {
 	s.lastRunTime = newRunTime
 }
 
-func (s MemoryStorage) WasTimeoutHandled(id string) bool {
+func (s MemoryStorage) TimeoutAlreadyHandled(id string) bool {
 	item := s.cache.Get(id)
 	return item != nil
 }

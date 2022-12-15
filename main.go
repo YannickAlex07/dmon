@@ -51,7 +51,7 @@ func main() {
 	handlers = append(handlers, slackHandler)
 
 	// setup state storage
-	stateStore := storage.NewMemoryStore(cfg.ExpireTimeoutDuration() * time.Minute)
+	stateStore := storage.NewMemoryStore(cfg.ExpireTimeoutDuration())
 
 	// setup and start monitor
 	monitorFunc := func() {

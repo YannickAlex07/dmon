@@ -74,7 +74,7 @@ func Monitor(cfg models.Config, api interfaces.API, handlers []interfaces.Handle
 				log.Infof("Job %s crossed max allowed timeout duration with a total runtime of %s", job.Id, totalRunTime)
 
 				// check if notification for job was already send
-				wasNotified := stateStore.WasTimeoutHandled(job.Id)
+				wasNotified := stateStore.TimeoutAlreadyHandled(job.Id)
 				if !wasNotified {
 
 					log.Infof("Timeout for job %s was not yet handled - handeling it now", job.Id)
