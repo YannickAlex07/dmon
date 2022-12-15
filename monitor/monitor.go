@@ -3,120 +3,94 @@ package monitor
 import (
 	"time"
 
-	"github.com/go-co-op/gocron"
 	log "github.com/sirupsen/logrus"
 	"github.com/yannickalex07/dmon/interfaces"
 	"github.com/yannickalex07/dmon/models"
 )
 
-func Start(cfg models.Config, api interfaces.API, handlers []interfaces.Handler) {
-	notifiedTimeouts := make(map[string]time.Time)
-	lastRun := time.Now()
+func Monitor(cfg models.Config, api interfaces.API, handlers []interfaces.Handler, stateStore interfaces.Storage) {
+	log.Info("Starting new run.")
 
-	// monitoring function
-	f := func() {
-		log.Info("Starting new request...")
+	// Dataflow API request
+	log.Info("Requesting jobs from Dataflow API")
 
-		// clear our notified timeouts that expired
-		log.Debug("Clearing out timouts...")
+	jobs, err := api.Jobs(cfg.Project.Id, cfg.Project.Location)
+	if err != nil {
+		log.Errorf("Failed to list jobs with error %s", err.Error())
+		return
+	}
 
-		cleaned := 0
-		for key, t := range notifiedTimeouts {
-			tDuration := time.Since(t)
-			if tDuration > cfg.ExpireTimeoutDuration() {
-				delete(notifiedTimeouts, key)
-				cleaned += 1
-			}
-		}
+	log.Debugf("Found %d jobs", len(jobs))
 
-		log.Debugf("Cleared out %d timeouts.", cleaned)
+	// checking job status
+	lastRunTime := stateStore.GetLatestRunTime()
 
-		// get jobs
-		log.Debug("Requesting jobs from Dataflow API...")
+	for _, job := range jobs {
+		// job was updated after last run
+		if job.Status.UpdatedAt.After(lastRunTime) {
+			log.WithFields(log.Fields{
+				"id":        job.Id,
+				"name":      job.Name,
+				"status":    job.Status.Status,
+				"updatedAt": job.Status.UpdatedAt,
+			}).Info("Found Job with newer status")
 
-		jobs, err := api.Jobs(cfg.Project.Id, cfg.Project.Location)
-		if err != nil {
-			log.Errorf("Failed to query jobs with err %s.", err.Error())
-			return
-		}
+			// handeling failed job
+			if job.Status.IsFailed() {
+				log.Info("Job %s has new failed status", job.Id)
 
-		log.Debugf("Found %d jobs.", len(jobs))
+				// requesting error messages from Dataflow
+				log.Infof("Requesting error messages for job %s", job.Id)
 
-		// update last runtime
-		prevRunTime := lastRun
-		lastRun = time.Now()
-
-		// check jobs
-		log.Debug("Iterating through jobs...")
-
-		for _, job := range jobs {
-
-			// check for status updates
-			if job.Status.UpdatedAt.Before(prevRunTime) {
-
-				log.WithFields(log.Fields{
-					"id":     job.Id,
-					"name":   job.Name,
-					"status": job.Status.Status,
-				}).Info("Found newer job status")
-
-				// handle failure state
-				if job.Status.IsFailed() {
-					// fetch error messages
-					log.Debugf("Requesting error messages for job %s...", job.Id)
-
-					messages, err := api.Messages(cfg.Project.Id, cfg.Project.Location, job.Id)
-					if err != nil {
-						log.Errorf("Failed to query error messages with err %s", err.Error())
-						return
-					}
-
-					log.Debugf("Found %d error messages.", len(messages))
-
-					// handle errors
-					log.Infof("Handling error for job %s...", job.Id)
-
-					for _, handler := range handlers {
-						handler.HandleError(cfg, job, messages)
-					}
-
-					log.Debug("Notified each handler.")
+				messages, err := api.Messages(cfg.Project.Id, cfg.Project.Location, job.Id)
+				if err != nil {
+					log.Errorf("Failed to query error messages for job %s with error %s", job.Id, err.Error())
+					return
 				}
+
+				log.Debugf("Found %d error messages for job %s", len(messages), job.Id)
+
+				// notifying handlers
+				log.Infof("Notifying handlers for failed job %s", job.Id)
+
+				for _, handler := range handlers {
+					handler.HandleError(cfg, job, messages)
+				}
+
+				log.Debugf("Notified handlers for job %s", job.Id)
 			}
 
-			// check for jobs with timeout
-			log.Debug("Checking for timeouts...")
+			// handeling job timeout
+			log.Info("Checking for running batch jobs.")
 
 			if job.Status.IsRunning() && !job.IsStreaming() {
-				log.Debugf("Found currently running job %s...", job.Id)
+				log.Debugf("Batch job %s is currently running", job.Id)
 
 				totalRunTime := time.Since(job.StartTime)
-				_, ok := notifiedTimeouts[job.Id]
 
-				if ok {
-					log.Debugf("Job %s already present in notified timeouts.", job.Id)
-				}
+				// check if time runs longer than allowed
+				log.Debugf("Checking if job %s has timeouted", job.Id)
 
-				// notify handlers of a timeout
-				if totalRunTime > cfg.MaxTimeoutDuration() && !ok {
-					log.Infof("Job %s crossed max allowed timeout duration. Sending to handlers...", job.Id)
+				if totalRunTime > cfg.MaxTimeoutDuration() {
+					log.Infof("Job %s crossed max allowed timeout duration", job.Id)
 
-					for _, handler := range handlers {
-						handler.HandleTimeout(cfg, job)
+					// check if notification for job was already send
+					wasNotified := stateStore.WasTimeoutHandled(job.Id)
+					if !wasNotified {
+						log.Infof("Timeout for job %s was not yet handled - handeling it now", job.Id)
+
+						for _, handler := range handlers {
+							handler.HandleTimeout(cfg, job)
+						}
+
+						stateStore.TimeoutHandled(job.Id)
+						log.Infof("Timeout of job %s was handled", job.Id)
 					}
-
-					notifiedTimeouts[job.Id] = time.Now()
-
-					log.Debug("Job send to handlers and stored in notified timeouts.")
 				}
 			}
 		}
 	}
 
-	log.Info("Starting monitor...")
-
-	// start scheduler
-	scheduler := gocron.NewScheduler(time.UTC)
-	scheduler.Every(cfg.RequestInterval).Minute().Do(f)
-	scheduler.StartBlocking()
+	stateStore.SetLatestRunTime(time.Now().UTC())
+	log.Info("Run finished.")
 }
