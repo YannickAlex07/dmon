@@ -4,8 +4,8 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/yannickalex07/dmon/interfaces"
-	"github.com/yannickalex07/dmon/models"
+	"github.com/yannickalex07/dmon/pkg/interfaces"
+	"github.com/yannickalex07/dmon/pkg/models"
 )
 
 func Monitor(cfg models.Config, api interfaces.API, handlers []interfaces.Handler, stateStore interfaces.Storage) {

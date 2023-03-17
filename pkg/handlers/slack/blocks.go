@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/slack-go/slack"
-	"github.com/yannickalex07/dmon/models"
+	"github.com/yannickalex07/dmon/pkg/models"
 )
 
 func createErrorBlocks(cfg models.Config, job models.Job, entries []models.LogEntry) []slack.Block {

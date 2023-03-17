@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"github.com/yannickalex07/dmon/models"
+	"github.com/yannickalex07/dmon/pkg/models"
 	"gopkg.in/yaml.v3"
 )
 

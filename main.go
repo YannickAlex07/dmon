@@ -2,29 +2,31 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/go-co-op/gocron"
 	log "github.com/sirupsen/logrus"
-	"github.com/yannickalex07/dmon/api"
-	"github.com/yannickalex07/dmon/config"
-	"github.com/yannickalex07/dmon/handlers/slack"
-	"github.com/yannickalex07/dmon/interfaces"
-	"github.com/yannickalex07/dmon/monitor"
-	"github.com/yannickalex07/dmon/storage"
+	"github.com/yannickalex07/dmon/pkg/api"
+	"github.com/yannickalex07/dmon/pkg/config"
+	"github.com/yannickalex07/dmon/pkg/handlers/slack"
+	"github.com/yannickalex07/dmon/pkg/interfaces"
+	"github.com/yannickalex07/dmon/pkg/monitor"
+	"github.com/yannickalex07/dmon/pkg/storage"
 )
 
 func main() {
 
 	// parse CLI arguments
-	configPath := flag.String("config", "./config.yaml", "Path to the config file")
+	configPath := flag.String("c", "./config.yaml", "Path to the config file")
 	flag.Parse()
 
 	// parse config
 	cfg, err := config.Read(*configPath)
 	if err != nil {
-		panic("Failed to parse config with error: error")
+		errStr := fmt.Sprintf("Failed to parse config => %s", err.Error())
+		panic(errStr)
 	}
 
 	// setup logging

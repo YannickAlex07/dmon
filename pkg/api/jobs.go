@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/yannickalex07/dmon/models"
-	"github.com/yannickalex07/dmon/util"
+	"github.com/yannickalex07/dmon/pkg/models"
+	"github.com/yannickalex07/dmon/pkg/util"
 	dataflow "google.golang.org/api/dataflow/v1b3"
 )
 

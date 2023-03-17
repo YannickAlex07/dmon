@@ -4,7 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/slack-go/slack"
-	"github.com/yannickalex07/dmon/models"
+	"github.com/yannickalex07/dmon/pkg/models"
 )
 
 type SlackHandler struct {

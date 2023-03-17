@@ -1,7 +1,7 @@
 package interfaces
 
 import (
-	"github.com/yannickalex07/dmon/models"
+	"github.com/yannickalex07/dmon/pkg/models"
 )
 
 type Handler interface {
