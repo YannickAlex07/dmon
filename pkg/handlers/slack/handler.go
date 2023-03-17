@@ -7,18 +7,28 @@ import (
 	"github.com/yannickalex07/dmon/pkg/models"
 )
 
+type SlackGCPConfig struct {
+	Id       string
+	Location string
+}
+
 type SlackHandler struct {
 	Token   string
 	Channel string
+
+	IncludeErrorSection   bool
+	IncludeDataflowButton bool
+
+	GCPConfig SlackGCPConfig
 }
 
-func (s SlackHandler) HandleError(cfg models.Config, job models.Job, entries []models.LogEntry) {
-	blocks := createErrorBlocks(cfg, job, entries)
+func (s SlackHandler) HandleError(job models.Job, entries []models.LogEntry) {
+	blocks := s.createErrorBlocks(job, entries)
 	s.send(blocks)
 }
 
-func (s SlackHandler) HandleTimeout(cfg models.Config, job models.Job) {
-	blocks := createTimeoutBlocks(cfg, job)
+func (s SlackHandler) HandleTimeout(job models.Job) {
+	blocks := s.createTimeoutBlocks(job)
 	s.send(blocks)
 }
 

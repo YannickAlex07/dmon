@@ -3,11 +3,10 @@ package config
 import (
 	"os"
 
-	"github.com/yannickalex07/dmon/pkg/models"
 	"gopkg.in/yaml.v3"
 )
 
-func Read(path string) (*models.Config, error) {
+func Read(path string) (*Config, error) {
 	// open file
 	yamlFile, err := os.ReadFile(path)
 	if err != nil {
@@ -15,7 +14,7 @@ func Read(path string) (*models.Config, error) {
 	}
 
 	// unmarshal config
-	var c *models.Config
+	var c *Config
 	err = yaml.Unmarshal(yamlFile, &c)
 	if err != nil {
 		return nil, err

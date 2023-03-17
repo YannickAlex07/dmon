@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-co-op/gocron"
 	log "github.com/sirupsen/logrus"
-	"github.com/yannickalex07/dmon/pkg/api"
+	"github.com/yannickalex07/dmon/pkg/client"
 	"github.com/yannickalex07/dmon/pkg/config"
 	"github.com/yannickalex07/dmon/pkg/handlers/slack"
 	"github.com/yannickalex07/dmon/pkg/interfaces"
@@ -42,22 +42,39 @@ func main() {
 	})
 	log.SetOutput(os.Stdout)
 
+	// build dataflow client
+	client := client.DataflowClient{
+		Project:  cfg.Project.Id,
+		Location: cfg.Project.Location,
+	}
+
 	// build handlers
 	handlers := make([]interfaces.Handler, 0)
 
 	// slack handler
 	slackHandler := slack.SlackHandler{
-		Token:   cfg.Slack.Token,
-		Channel: cfg.Slack.Channel,
+		Token:                 cfg.Slack.Token,
+		Channel:               cfg.Slack.Channel,
+		IncludeErrorSection:   cfg.Slack.IncludeErrorSection,
+		IncludeDataflowButton: cfg.Slack.IncludeDataflowButton,
+		GCPConfig: slack.SlackGCPConfig{
+			Id:       cfg.Project.Id,
+			Location: cfg.Project.Location,
+		},
 	}
+
 	handlers = append(handlers, slackHandler)
 
 	// setup state storage
 	stateStore := storage.NewMemoryStore(cfg.ExpireTimeoutDuration())
 
 	// setup and start monitor
+	monCfg := monitor.MonitorConfig{
+		MaxJobTimeout: cfg.MaxTimeoutDuration(),
+	}
+
 	monitorFunc := func() {
-		monitor.Monitor(*cfg, api.API{}, handlers, stateStore)
+		monitor.Monitor(monCfg, client, handlers, stateStore)
 	}
 
 	scheduler := gocron.NewScheduler(time.UTC)

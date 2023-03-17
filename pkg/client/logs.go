@@ -1,4 +1,4 @@
-package api
+package client
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	dataflow "google.golang.org/api/dataflow/v1b3"
 )
 
-func (api API) ErrorLogs(project string, location string, jobId string) ([]models.LogEntry, error) {
+func (client DataflowClient) ErrorLogs(jobId string) ([]models.LogEntry, error) {
 	ctx := context.Background()
 
 	// create service and request
@@ -19,7 +19,7 @@ func (api API) ErrorLogs(project string, location string, jobId string) ([]model
 	}
 
 	jobService := dataflow.NewProjectsLocationsJobsMessagesService(service)
-	req := jobService.List(project, location, jobId)
+	req := jobService.List(client.Project, client.Location, jobId)
 
 	// request list of jobs
 	var entries []models.LogEntry
