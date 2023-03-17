@@ -28,8 +28,8 @@ func (client DataflowClient) Jobs() ([]models.Job, error) {
 		for _, job := range res.Jobs {
 
 			// check if the name matches a prefix as long as one is required
-			if client.Prefix != nil && *client.Prefix != "" {
-				matches := strings.HasPrefix(job.Name, *client.Prefix)
+			if client.Prefix != "" {
+				matches := strings.HasPrefix(job.Name, client.Prefix)
 				if !matches {
 					continue
 				}
