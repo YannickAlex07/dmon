@@ -3,15 +3,15 @@ package models
 import "time"
 
 type Config struct {
-	RequestInterval int `yaml:"request_interval"`
+	RequestInterval int `default:"10" yaml:"request_interval"`
 
 	Logging struct {
-		Verbose bool `yaml:"verbose"`
+		Verbose bool `default:"false" yaml:"verbose"`
 	}
 
 	Timeout struct {
-		MaxTimeout    int `yaml:"max_timeout_duration"`
-		ExpireTimeout int `yaml:"expire_timeout_duration"`
+		MaxTimeout    int `default:"60" yaml:"max_timeout_duration"`
+		ExpireTimeout int `default:"1440" yaml:"expire_timeout_duration"`
 	} `yaml:"timeout"`
 
 	Project struct {
@@ -22,8 +22,8 @@ type Config struct {
 	Slack struct {
 		Token                 string `yaml:"token"`
 		Channel               string `yaml:"channel"`
-		IncludeErrorSection   bool   `yaml:"include_error_section"`
-		IncludeDataflowButton bool   `yaml:"include_dataflow_button"`
+		IncludeErrorSection   bool   `default:"false" yaml:"include_error_section"`
+		IncludeDataflowButton bool   `default:"false" yaml:"include_dataflow_button"`
 	} `yaml:"slack"`
 }
 
