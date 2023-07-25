@@ -42,7 +42,7 @@ func Monitor(cfg MonitorConfig, client interfaces.DataflowClient, handlers []int
 
 			// handeling failed job
 			if job.Status.IsFailed() {
-				log.Info("Job %s has new failed status", job.Id)
+				log.Infof("Job %s has new failed status", job.Id)
 
 				// requesting error messages from Dataflow
 				log.Infof("Requesting error log entries for job %s", job.Id)
