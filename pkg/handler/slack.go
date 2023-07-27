@@ -1,15 +1,51 @@
-package slack
+package handler
 
 import (
 	"fmt"
 	"strings"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+	"github.com/yannickalex07/dmon/pkg/model"
+
 	"github.com/slack-go/slack"
-	"github.com/yannickalex07/dmon/pkg/models"
 )
 
-func (s SlackHandler) createErrorBlocks(job models.Job, entries []models.LogEntry) []slack.Block {
+type SlackGCPConfig struct {
+	Id       string
+	Location string
+}
+
+type SlackHandler struct {
+	Token   string
+	Channel string
+
+	IncludeErrorSection   bool
+	IncludeDataflowButton bool
+
+	GCPConfig SlackGCPConfig
+}
+
+func (s SlackHandler) HandleError(job model.Job, entries []model.LogEntry) {
+	blocks := s.createErrorBlocks(job, entries)
+	s.send(blocks)
+}
+
+func (s SlackHandler) HandleTimeout(job model.Job) {
+	blocks := s.createTimeoutBlocks(job)
+	s.send(blocks)
+}
+
+func (s SlackHandler) send(blocks []slack.Block) {
+	client := slack.New(s.Token)
+
+	_, _, _, err := client.SendMessage(s.Channel, slack.MsgOptionBlocks(blocks...))
+	if err != nil {
+		log.Errorf("Failed to Send Message with error: %s!\n", err.Error())
+	}
+}
+
+func (s SlackHandler) createErrorBlocks(job model.Job, entries []model.LogEntry) []slack.Block {
 	blocks := make([]slack.Block, 0)
 
 	// Title
@@ -47,7 +83,7 @@ func (s SlackHandler) createErrorBlocks(job models.Job, entries []models.LogEntr
 	return blocks
 }
 
-func (s SlackHandler) createTimeoutBlocks(job models.Job) []slack.Block {
+func (s SlackHandler) createTimeoutBlocks(job model.Job) []slack.Block {
 	blocks := make([]slack.Block, 0)
 
 	// Title

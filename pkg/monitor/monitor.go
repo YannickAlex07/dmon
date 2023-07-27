@@ -5,14 +5,16 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/yannickalex07/dmon/pkg/interfaces"
+	"github.com/yannickalex07/dmon/pkg/dataflow"
+	"github.com/yannickalex07/dmon/pkg/handler"
+	"github.com/yannickalex07/dmon/pkg/storage"
 )
 
 type MonitorConfig struct {
 	MaxJobTimeout time.Duration
 }
 
-func Monitor(cfg MonitorConfig, client interfaces.DataflowClient, handlers []interfaces.Handler, stateStore interfaces.Storage) {
+func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Handler, stateStore storage.Storage) {
 	log.Info("Starting new run.")
 
 	// Dataflow API request

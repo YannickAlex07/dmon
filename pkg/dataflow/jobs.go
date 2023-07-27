@@ -1,16 +1,16 @@
-package client
+package dataflow
 
 import (
 	"context"
 	"errors"
 	"strings"
 
-	"github.com/yannickalex07/dmon/pkg/models"
+	"github.com/yannickalex07/dmon/pkg/model"
 	"github.com/yannickalex07/dmon/pkg/util"
 	dataflow "google.golang.org/api/dataflow/v1b3"
 )
 
-func (client DataflowClient) Jobs() ([]models.Job, error) {
+func (client DataflowClient) Jobs() ([]model.Job, error) {
 	ctx := context.Background()
 
 	// create service and request
@@ -23,7 +23,7 @@ func (client DataflowClient) Jobs() ([]models.Job, error) {
 	req := jobService.List(client.Project, client.Location)
 
 	// request list of jobs
-	var jobs []models.Job
+	var jobs []model.Job
 	err = req.Pages(ctx, func(res *dataflow.ListJobsResponse) error {
 		for _, job := range res.Jobs {
 
@@ -47,11 +47,11 @@ func (client DataflowClient) Jobs() ([]models.Job, error) {
 			}
 
 			// add job
-			j := models.Job{
+			j := model.Job{
 				Id:   job.Id,
 				Name: job.Name,
 				Type: job.Type,
-				Status: models.Status{
+				Status: model.Status{
 					Status:    job.CurrentState,
 					UpdatedAt: statusTime,
 				},

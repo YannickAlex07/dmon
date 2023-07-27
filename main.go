@@ -8,10 +8,9 @@ import (
 
 	"github.com/go-co-op/gocron"
 	log "github.com/sirupsen/logrus"
-	"github.com/yannickalex07/dmon/pkg/client"
 	"github.com/yannickalex07/dmon/pkg/config"
-	"github.com/yannickalex07/dmon/pkg/handlers/slack"
-	"github.com/yannickalex07/dmon/pkg/interfaces"
+	"github.com/yannickalex07/dmon/pkg/dataflow"
+	"github.com/yannickalex07/dmon/pkg/handler"
 	"github.com/yannickalex07/dmon/pkg/monitor"
 	"github.com/yannickalex07/dmon/pkg/storage"
 )
@@ -43,21 +42,21 @@ func main() {
 	log.SetOutput(os.Stdout)
 
 	// build dataflow client
-	client := client.DataflowClient{
+	client := dataflow.DataflowClient{
 		Project:  cfg.Project.Id,
 		Location: cfg.Project.Location,
 	}
 
 	// build handlers
-	handlers := make([]interfaces.Handler, 0)
+	handlers := make([]handler.Handler, 0)
 
 	// slack handler
-	slackHandler := slack.SlackHandler{
+	slackHandler := handler.SlackHandler{
 		Token:                 cfg.Slack.Token,
 		Channel:               cfg.Slack.Channel,
 		IncludeErrorSection:   cfg.Slack.IncludeErrorSection,
 		IncludeDataflowButton: cfg.Slack.IncludeDataflowButton,
-		GCPConfig: slack.SlackGCPConfig{
+		GCPConfig: handler.SlackGCPConfig{
 			Id:       cfg.Project.Id,
 			Location: cfg.Project.Location,
 		},

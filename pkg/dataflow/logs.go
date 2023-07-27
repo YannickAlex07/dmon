@@ -1,15 +1,15 @@
-package client
+package dataflow
 
 import (
 	"context"
 	"errors"
 
-	"github.com/yannickalex07/dmon/pkg/models"
+	"github.com/yannickalex07/dmon/pkg/model"
 	"github.com/yannickalex07/dmon/pkg/util"
 	dataflow "google.golang.org/api/dataflow/v1b3"
 )
 
-func (client DataflowClient) ErrorLogs(jobId string) ([]models.LogEntry, error) {
+func (client DataflowClient) ErrorLogs(jobId string) ([]model.LogEntry, error) {
 	ctx := context.Background()
 
 	// create service and request
@@ -22,7 +22,7 @@ func (client DataflowClient) ErrorLogs(jobId string) ([]models.LogEntry, error) 
 	req := jobService.List(client.Project, client.Location, jobId)
 
 	// request list of jobs
-	var entries []models.LogEntry
+	var entries []model.LogEntry
 	err = req.Pages(ctx, func(res *dataflow.ListJobMessagesResponse) error {
 		for _, message := range res.JobMessages {
 			// skip any entry that is not an error
@@ -37,7 +37,7 @@ func (client DataflowClient) ErrorLogs(jobId string) ([]models.LogEntry, error) 
 			}
 
 			// add entry
-			e := models.LogEntry{
+			e := model.LogEntry{
 				Text: message.MessageText,
 				Time: t,
 			}
