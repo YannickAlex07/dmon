@@ -30,8 +30,9 @@ func TestParseTimestampWithWrongFormat(t *testing.T) {
 	nowStr := now.Format(time.RFC850) // different timestamp format
 
 	// - Act
-	_, err := util.ParseTimestamp(nowStr)
+	result, err := util.ParseTimestamp(nowStr)
 
 	// - Assert
+	assert.True(t, result.IsZero())
 	assert.Error(t, err)
 }
