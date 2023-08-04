@@ -30,11 +30,14 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 	log.Debugf("Found %d jobs", len(jobs))
 
 	// checking job status
-	lastRunTime := stateStore.GetLatestRuntime()
+	lastExecutionTime, ok := stateStore.GetLatestExecutionTime()
+	if !ok {
+		lastExecutionTime = time.Now().UTC()
+	}
 
 	for _, job := range jobs {
 		// job was updated after last run
-		if job.Status.UpdatedAt.After(lastRunTime) {
+		if job.Status.UpdatedAt.After(lastExecutionTime) {
 			log.WithFields(log.Fields{
 				"id":        job.Id,
 				"name":      job.Name,
@@ -82,7 +85,7 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 				log.Infof("Job %s crossed max allowed timeout duration with a total runtime of %s", job.Id, totalRunTime.Round(time.Second))
 
 				// check if notification for job was already send
-				wasNotified := stateStore.TimeoutAlreadyHandled(job.Id)
+				wasNotified := stateStore.WasTimeoutHandled(job.Id)
 				if !wasNotified {
 
 					log.Infof("Timeout for job %s was not yet handled - handeling it now", job.Id)
@@ -91,13 +94,13 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 						handler.HandleTimeout(job)
 					}
 
-					stateStore.TimeoutHandled(job.Id)
+					stateStore.HandleTimeout(job.Id, time.Now().UTC())
 					log.Infof("Timeout of job %s was handled", job.Id)
 				}
 			}
 		}
 	}
 
-	stateStore.SetLatestRuntime(time.Now().UTC())
+	stateStore.SetLatestExecutionTime(time.Now().UTC())
 	log.Info("Run finished.")
 }

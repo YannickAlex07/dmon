@@ -3,9 +3,9 @@ package storage
 import "time"
 
 type Storage interface {
-	GetLatestRuntime() time.Time
-	SetLatestRuntime(newRunTime time.Time)
+	GetLatestExecutionTime() (_ time.Time, ok bool)
+	SetLatestExecutionTime(t time.Time)
 
-	TimeoutAlreadyHandled(id string) bool
-	TimeoutHandled(id string)
+	WasTimeoutHandled(id string) bool
+	HandleTimeout(id string, t time.Time)
 }
