@@ -36,3 +36,15 @@ func TestParseTimestampWithWrongFormat(t *testing.T) {
 	assert.True(t, result.IsZero())
 	assert.Error(t, err)
 }
+
+func TestParseTimestampWithInvalidString(t *testing.T) {
+	// - Arrange
+	str := "this-is-not-a-timestamp"
+
+	// - Act
+	result, err := util.ParseTimestamp(str)
+
+	// - Assert
+	assert.True(t, result.IsZero())
+	assert.Error(t, err)
+}

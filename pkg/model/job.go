@@ -27,10 +27,6 @@ type Status struct {
 	UpdatedAt time.Time
 }
 
-// func (s Status) IsNewer(t time.Time) bool {
-// 	return t.Before(s.UpdatedAt)
-// }
-
 func (s Status) IsFailed() bool {
 	return s.Status == "JOB_STATE_FAILED"
 }
