@@ -3,7 +3,7 @@ package storage
 import "time"
 
 type Storage interface {
-	GetLatestExecutionTime() (_ time.Time, ok bool)
+	GetLatestExecutionTime() (time.Time, error)
 	SetLatestExecutionTime(t time.Time)
 
 	WasTimeoutHandled(id string) bool

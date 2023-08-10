@@ -17,10 +17,10 @@ func TestMemoryStoreGetAndSetExecutionTime(t *testing.T) {
 
 	// - Act
 	storage.SetLatestExecutionTime(lastExecutionTime)
-	fetchedTime, ok := storage.GetLatestExecutionTime()
+	fetchedTime, err := storage.GetLatestExecutionTime()
 
 	// - Assert
-	assert.True(t, ok)
+	assert.Nil(t, err)
 	assert.True(t, lastExecutionTime.Equal(fetchedTime))
 }
 

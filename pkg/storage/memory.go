@@ -24,8 +24,8 @@ func NewMemoryStore(ttl time.Duration) *MemoryStorage {
 	}
 }
 
-func (s MemoryStorage) GetLatestExecutionTime() (_ time.Time, ok bool) {
-	return s.lastRunTime, true
+func (s MemoryStorage) GetLatestExecutionTime() (time.Time, error) {
+	return s.lastRunTime, nil
 }
 
 func (s *MemoryStorage) SetLatestExecutionTime(t time.Time) {

@@ -30,8 +30,8 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 	log.Debugf("Found %d jobs", len(jobs))
 
 	// checking job status
-	lastExecutionTime, ok := stateStore.GetLatestExecutionTime()
-	if !ok {
+	lastExecutionTime, err := stateStore.GetLatestExecutionTime()
+	if err != nil {
 		lastExecutionTime = time.Now().UTC()
 	}
 
