@@ -1,12 +1,14 @@
 package monitor
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/yannickalex07/dmon/pkg/dataflow"
 	"github.com/yannickalex07/dmon/pkg/handler"
+	"github.com/yannickalex07/dmon/pkg/model"
 	"github.com/yannickalex07/dmon/pkg/storage"
 )
 
@@ -14,7 +16,7 @@ type MonitorConfig struct {
 	MaxJobTimeout time.Duration
 }
 
-func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Handler, stateStore storage.Storage) {
+func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Handler, stateStore storage.Storage) error {
 	log.Info("Starting new run.")
 
 	// Dataflow API request
@@ -24,7 +26,8 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to list jobs with error %s", err.Error())
 		log.Errorf(errMsg)
-		panic(errMsg)
+
+		return errors.New(errMsg)
 	}
 
 	log.Debugf("Found %d jobs", len(jobs))
@@ -32,6 +35,7 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 	// checking job status
 	lastExecutionTime, err := stateStore.GetLatestExecutionTime()
 	if err != nil {
+		log.Warningf("Failed to fetch latest execution time from state store! Using now().")
 		lastExecutionTime = time.Now().UTC()
 	}
 
@@ -56,7 +60,9 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 				if err != nil {
 					errMsg := fmt.Sprintf("Failed to query error entries for job %s with error %s", job.Id, err.Error())
 					log.Errorf(errMsg)
-					panic(errMsg)
+
+					// we don't interrupt the application here and just pass 0 entries.
+					entries = make([]model.LogEntry, 0)
 				}
 
 				log.Debugf("Found %d error entries for job %s", len(entries), job.Id)
@@ -103,4 +109,6 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 
 	stateStore.SetLatestExecutionTime(time.Now().UTC())
 	log.Info("Run finished.")
+
+	return nil
 }

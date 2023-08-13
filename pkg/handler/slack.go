@@ -60,15 +60,22 @@ func (s SlackHandler) createErrorBlocks(job model.Job, entries []model.LogEntry)
 	blocks = append(blocks, infoSectionBlock)
 
 	// Error Section
-	if s.IncludeErrorSection {
-		// Error Text
-		msgParts := strings.Split(entries[0].Text, "\n")
-		msg := msgParts[len(msgParts)-2] // last line is a blank line - before that comes the last error message
-		errorText := fmt.Sprintf("Error Message: ```%s```", msg)
+	if s.IncludeErrorSection && len(entries) > 0 {
+		if len(entries) > 0 {
+			// Error Text
+			msgParts := strings.Split(entries[0].Text, "\n")
+			msg := msgParts[len(msgParts)-2] // last line is a blank line - before that comes the last error message
+			errorText := fmt.Sprintf("Error Message: ```%s```", msg)
 
-		errorTextBlock := slack.NewTextBlockObject("mrkdwn", errorText, false, false)
-		errorSectionBlock := slack.NewSectionBlock(errorTextBlock, nil, nil)
-		blocks = append(blocks, errorSectionBlock)
+			errorTextBlock := slack.NewTextBlockObject("mrkdwn", errorText, false, false)
+			errorSectionBlock := slack.NewSectionBlock(errorTextBlock, nil, nil)
+			blocks = append(blocks, errorSectionBlock)
+		} else {
+			errorText := "```Failed to fetch log entries.```"
+			errorTextBlock := slack.NewTextBlockObject("mrkdwn", errorText, false, false)
+			errorSectionBlock := slack.NewSectionBlock(errorTextBlock, nil, nil)
+			blocks = append(blocks, errorSectionBlock)
+		}
 	}
 
 	// Dataflow Button
