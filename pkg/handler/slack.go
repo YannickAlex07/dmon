@@ -1,15 +1,17 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/yannickalex07/dmon/pkg/model"
 
 	"github.com/slack-go/slack"
 )
+
+const dataflowUrl string = "https://console.cloud.google.com/dataflow/jobs/%s/%s?project=%s&authuser=1&hl=en"
 
 type SlackGCPConfig struct {
 	Id       string
@@ -26,23 +28,25 @@ type SlackHandler struct {
 	GCPConfig SlackGCPConfig
 }
 
-func (s SlackHandler) HandleError(job model.Job, entries []model.LogEntry) {
+func (s SlackHandler) HandleError(ctx context.Context, job model.Job, entries []model.LogEntry) error {
 	blocks := s.createErrorBlocks(job, entries)
-	s.send(blocks)
+	return s.send(blocks)
 }
 
-func (s SlackHandler) HandleTimeout(job model.Job) {
+func (s SlackHandler) HandleTimeout(ctx context.Context, job model.Job) error {
 	blocks := s.createTimeoutBlocks(job)
-	s.send(blocks)
+	return s.send(blocks)
 }
 
-func (s SlackHandler) send(blocks []slack.Block) {
+func (s SlackHandler) send(blocks []slack.Block) error {
 	client := slack.New(s.Token)
 
 	_, _, _, err := client.SendMessage(s.Channel, slack.MsgOptionBlocks(blocks...))
 	if err != nil {
-		log.Errorf("Failed to Send Message with error: %s!\n", err.Error())
+		return fmt.Errorf("failed to send message with error: %w", err)
 	}
+
+	return nil
 }
 
 func (s SlackHandler) createErrorBlocks(job model.Job, entries []model.LogEntry) []slack.Block {
@@ -60,11 +64,12 @@ func (s SlackHandler) createErrorBlocks(job model.Job, entries []model.LogEntry)
 	blocks = append(blocks, infoSectionBlock)
 
 	// Error Section
-	if s.IncludeErrorSection && len(entries) > 0 {
+	if s.IncludeErrorSection {
 		if len(entries) > 0 {
 			// Error Text
-			msgParts := strings.Split(entries[0].Text, "\n")
-			msg := msgParts[len(msgParts)-2] // last line is a blank line - before that comes the last error message
+			cleaned := strings.TrimSpace(entries[0].Text)
+			msgParts := strings.Split(cleaned, "\n")
+			msg := msgParts[len(msgParts)-1] // last line is a blank line - before that comes the last error message
 			errorText := fmt.Sprintf("Error Message: ```%s```", msg)
 
 			errorTextBlock := slack.NewTextBlockObject("mrkdwn", errorText, false, false)
@@ -82,7 +87,7 @@ func (s SlackHandler) createErrorBlocks(job model.Job, entries []model.LogEntry)
 	if s.IncludeDataflowButton {
 		gcpTextBlock := slack.NewTextBlockObject("plain_text", "Open in Dataflow UI", false, false)
 		gcpButtonBlock := slack.NewButtonBlockElement("dataflow_ui", "", gcpTextBlock)
-		gcpButtonBlock.URL = fmt.Sprintf("https://console.cloud.google.com/dataflow/jobs/%s/%s?project=%s&authuser=1&hl=en", s.GCPConfig.Location, job.Id, s.GCPConfig.Id)
+		gcpButtonBlock.URL = fmt.Sprintf(dataflowUrl, s.GCPConfig.Location, job.Id, s.GCPConfig.Id)
 		gcpButtonActionBlock := slack.NewActionBlock("dataflow-button", gcpButtonBlock)
 		blocks = append(blocks, gcpButtonActionBlock)
 	}
@@ -107,7 +112,7 @@ func (s SlackHandler) createTimeoutBlocks(job model.Job) []slack.Block {
 	if s.IncludeDataflowButton {
 		gcpTextBlock := slack.NewTextBlockObject("plain_text", "Open in Dataflow UI", false, false)
 		gcpButtonBlock := slack.NewButtonBlockElement("dataflow_ui", "", gcpTextBlock)
-		gcpButtonBlock.URL = fmt.Sprintf("https://console.cloud.google.com/dataflow/jobs/%s/%s?project=%s&authuser=1&hl=en", s.GCPConfig.Location, job.Id, s.GCPConfig.Id)
+		gcpButtonBlock.URL = fmt.Sprintf(dataflowUrl, s.GCPConfig.Location, job.Id, s.GCPConfig.Id)
 		gcpButtonActionBlock := slack.NewActionBlock("dataflow-button", gcpButtonBlock)
 		blocks = append(blocks, gcpButtonActionBlock)
 	}

@@ -1,7 +1,7 @@
 package monitor
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"time"
 
@@ -18,19 +18,7 @@ type MonitorConfig struct {
 
 func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Handler, stateStore storage.Storage) error {
 	log.Info("Starting new run.")
-
-	// Dataflow API request
-	log.Info("Requesting jobs from Dataflow API")
-
-	jobs, err := client.Jobs()
-	if err != nil {
-		errMsg := fmt.Sprintf("Failed to list jobs with error %s", err.Error())
-		log.Errorf(errMsg)
-
-		return errors.New(errMsg)
-	}
-
-	log.Debugf("Found %d jobs", len(jobs))
+	ctx := context.Background()
 
 	// checking job status
 	lastExecutionTime, err := stateStore.GetLatestExecutionTime()
@@ -38,6 +26,19 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 		log.Warningf("Failed to fetch latest execution time from state store! Using now().")
 		lastExecutionTime = time.Now().UTC()
 	}
+
+	// Dataflow API request
+	log.Info("Requesting jobs from Dataflow API")
+
+	jobs, err := client.Jobs(ctx)
+	if err != nil {
+		wrappedErr := fmt.Errorf("failed to list jobs with error %w", err)
+		log.Errorf(wrappedErr.Error())
+
+		return wrappedErr
+	}
+
+	log.Debugf("Found %d jobs", len(jobs))
 
 	for _, job := range jobs {
 		// job was updated after last run
@@ -56,7 +57,7 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 				// requesting error messages from Dataflow
 				log.Infof("Requesting error log entries for job %s", job.Id)
 
-				entries, err := client.ErrorLogs(job.Id)
+				entries, err := client.ErrorLogs(ctx, job.Id)
 				if err != nil {
 					errMsg := fmt.Sprintf("Failed to query error entries for job %s with error %s", job.Id, err.Error())
 					log.Errorf(errMsg)
@@ -71,7 +72,10 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 				log.Infof("Notifying handlers for failed job %s", job.Id)
 
 				for _, handler := range handlers {
-					handler.HandleError(job, entries)
+					err := handler.HandleError(ctx, job, entries)
+					if err != nil {
+						log.Errorf("handler failed to handle job error: %s", err.Error())
+					}
 				}
 
 				log.Debugf("Notified handlers for job %s", job.Id)
@@ -91,23 +95,38 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 				log.Infof("Job %s crossed max allowed timeout duration with a total runtime of %s", job.Id, totalRunTime.Round(time.Second))
 
 				// check if notification for job was already send
-				wasNotified := stateStore.WasTimeoutHandled(job.Id)
-				if !wasNotified {
+				isStored, err := stateStore.IsTimeoutStored(job.Id)
+				if err != nil {
+					log.Errorf("failed to fetch if timeout is stored: %s", err.Error())
+					isStored = false
+				}
 
+				if !isStored {
 					log.Infof("Timeout for job %s was not yet handled - handeling it now", job.Id)
 
 					for _, handler := range handlers {
-						handler.HandleTimeout(job)
+						err := handler.HandleTimeout(ctx, job)
+						if err != nil {
+							log.Errorf("handler failed to handle job timeout: %s", err.Error())
+						}
 					}
 
-					stateStore.HandleTimeout(job.Id, time.Now().UTC())
+					err := stateStore.StoreTimeout(job.Id, time.Now().UTC())
+					if err != nil {
+						log.Errorf("failed to store timeout with err: %s", err.Error())
+					}
+
 					log.Infof("Timeout of job %s was handled", job.Id)
 				}
 			}
 		}
 	}
 
-	stateStore.SetLatestExecutionTime(time.Now().UTC())
+	err = stateStore.SetLatestExecutionTime(time.Now().UTC())
+	if err != nil {
+		log.Errorf("failed to set latest execution time: %s", err.Error())
+	}
+
 	log.Info("Run finished.")
 
 	return nil

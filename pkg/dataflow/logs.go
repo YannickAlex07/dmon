@@ -2,15 +2,17 @@ package dataflow
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/yannickalex07/dmon/pkg/model"
 	"github.com/yannickalex07/dmon/pkg/util"
 	dataflow "google.golang.org/api/dataflow/v1b3"
 )
 
-func (client DataflowClient) ErrorLogs(jobId string) ([]model.LogEntry, error) {
-	ctx := context.Background()
+func (client DataflowClient) ErrorLogs(ctx context.Context, jobId string) ([]model.LogEntry, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
 	// create service and request
 	service, err := dataflow.NewService(ctx)
@@ -33,7 +35,7 @@ func (client DataflowClient) ErrorLogs(jobId string) ([]model.LogEntry, error) {
 			// parse timestamps
 			t, err := util.ParseTimestamp(message.Time)
 			if err != nil {
-				return errors.New("failed to parse entry time")
+				return fmt.Errorf("failed to parse entry time with: %w", err)
 			}
 
 			// add entry

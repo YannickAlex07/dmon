@@ -1,8 +1,12 @@
 package handler
 
-import "github.com/yannickalex07/dmon/pkg/model"
+import (
+	"context"
+
+	"github.com/yannickalex07/dmon/pkg/model"
+)
 
 type Handler interface {
-	HandleError(job model.Job, entries []model.LogEntry)
-	HandleTimeout(job model.Job)
+	HandleError(ctx context.Context, job model.Job, entries []model.LogEntry) error
+	HandleTimeout(ctx context.Context, job model.Job) error
 }

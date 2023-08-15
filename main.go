@@ -16,7 +16,6 @@ import (
 )
 
 func main() {
-
 	// parse CLI arguments
 	configPath := flag.String("c", "./config.yaml", "Path to the config file")
 	flag.Parse()
@@ -25,7 +24,7 @@ func main() {
 	cfg, err := config.Read(*configPath)
 	if err != nil {
 		errStr := fmt.Sprintf("Failed to parse config => %s", err.Error())
-		panic(errStr)
+		log.Fatal(errStr)
 	}
 
 	// setup logging

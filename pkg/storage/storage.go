@@ -4,8 +4,8 @@ import "time"
 
 type Storage interface {
 	GetLatestExecutionTime() (time.Time, error)
-	SetLatestExecutionTime(t time.Time)
+	SetLatestExecutionTime(t time.Time) error
 
-	WasTimeoutHandled(id string) bool
-	HandleTimeout(id string, t time.Time)
+	IsTimeoutStored(id string) (bool, error)
+	StoreTimeout(id string, t time.Time) error
 }

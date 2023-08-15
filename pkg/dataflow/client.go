@@ -1,10 +1,14 @@
 package dataflow
 
-import "github.com/yannickalex07/dmon/pkg/model"
+import (
+	"context"
+
+	"github.com/yannickalex07/dmon/pkg/model"
+)
 
 type Dataflow interface {
-	Jobs() ([]model.Job, error)
-	ErrorLogs(jobId string) ([]model.LogEntry, error)
+	Jobs(ctx context.Context) ([]model.Job, error)
+	ErrorLogs(ctx context.Context, jobId string) ([]model.LogEntry, error)
 }
 
 type DataflowClient struct {

@@ -2,7 +2,7 @@ package dataflow
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/yannickalex07/dmon/pkg/model"
@@ -10,8 +10,10 @@ import (
 	dataflow "google.golang.org/api/dataflow/v1b3"
 )
 
-func (client DataflowClient) Jobs() ([]model.Job, error) {
-	ctx := context.Background()
+func (client DataflowClient) Jobs(ctx context.Context) ([]model.Job, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
 	// create service and request
 	service, err := dataflow.NewService(ctx)
@@ -38,12 +40,12 @@ func (client DataflowClient) Jobs() ([]model.Job, error) {
 			// parse timestamps
 			startTime, err := util.ParseTimestamp(job.StartTime)
 			if err != nil {
-				return errors.New("failed to parse start time")
+				return fmt.Errorf("failed to parse state time with: %w", err)
 			}
 
 			statusTime, err := util.ParseTimestamp(job.CurrentStateTime)
 			if err != nil {
-				return errors.New("failed to parse current status time")
+				return fmt.Errorf("failed to parse current status time with %w", err)
 			}
 
 			// add job
