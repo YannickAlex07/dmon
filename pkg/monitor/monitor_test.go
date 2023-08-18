@@ -1,6 +1,7 @@
 package monitor_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -31,11 +32,11 @@ type FakeDataflow struct {
 	ErrorLogsConfig ErrorLogsConfig
 }
 
-func (f FakeDataflow) Jobs() ([]model.Job, error) {
+func (f FakeDataflow) Jobs(ctx context.Context) ([]model.Job, error) {
 	return f.JobsConfig.ReturnValue, f.JobsConfig.ErrorValue
 }
 
-func (f FakeDataflow) ErrorLogs(jobId string) ([]model.LogEntry, error) {
+func (f FakeDataflow) ErrorLogs(ctx context.Context, jobId string) ([]model.LogEntry, error) {
 	return f.ErrorLogsConfig.ReturnValue, f.ErrorLogsConfig.ErrorValue
 }
 
@@ -51,12 +52,14 @@ type FakeHandler struct {
 	TimeoutsHandled []model.Job
 }
 
-func (f *FakeHandler) HandleError(job model.Job, entries []model.LogEntry) {
+func (f *FakeHandler) HandleError(job model.Job, entries []model.LogEntry) error {
 	f.ErrorsHandled = append(f.ErrorsHandled, HandledErrors{Job: job, Entries: entries})
+	return nil
 }
 
-func (f *FakeHandler) HandleTimeout(job model.Job) {
+func (f *FakeHandler) HandleTimeout(job model.Job) error {
 	f.TimeoutsHandled = append(f.TimeoutsHandled, job)
+	return nil
 }
 
 // --- StateStore

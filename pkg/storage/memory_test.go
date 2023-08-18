@@ -16,49 +16,55 @@ func TestMemoryStoreGetAndSetExecutionTime(t *testing.T) {
 	lastExecutionTime := time.Now().Add(1 * time.Hour)
 
 	// - Act
-	storage.SetLatestExecutionTime(lastExecutionTime)
-	fetchedTime, err := storage.GetLatestExecutionTime()
+	storeError := storage.SetLatestExecutionTime(lastExecutionTime)
+	fetchedTime, fetchError := storage.GetLatestExecutionTime()
 
 	// - Assert
-	assert.Nil(t, err)
+	assert.Nil(t, storeError)
+	assert.Nil(t, fetchError)
 	assert.True(t, lastExecutionTime.Equal(fetchedTime))
 }
 
-func TestMemoryStoreWasTimeoutHandledWithNonHandledTimeout(t *testing.T) {
+func TestMemoryStoreIsTimeoutStoredWithNonStoredTimeout(t *testing.T) {
 	// - Arrange
 	storage := storage.NewMemoryStore(1 * time.Hour)
 
 	// - Act
-	handled := storage.WasTimeoutHandled("job-id")
+	handled, err := storage.IsTimeoutStored("job-id")
 
 	// - Assert
+	assert.Nil(t, err)
 	assert.False(t, handled)
 }
 
-func TestMemoryStoreWasTimeoutHandledWithHandledTimeout(t *testing.T) {
+func TestMemoryStoreIsTimeoutStoredWithStoredTimeout(t *testing.T) {
 	// - Arrange
 	storage := storage.NewMemoryStore(1 * time.Hour)
 
 	// - Act
-	storage.HandleTimeout("job-id", time.Now())
-	handled := storage.WasTimeoutHandled("job-id")
+	storeError := storage.StoreTimeout("job-id", time.Now())
+	handled, fetchError := storage.IsTimeoutStored("job-id")
 
 	// - Assert
+	assert.Nil(t, storeError)
+	assert.Nil(t, fetchError)
 	assert.True(t, handled)
 }
 
-func TestMemoryStoreWasTimeoutHandledWithExpiredTimeout(t *testing.T) {
+func TestMemoryStoreIsTimeoutStoredWithExpiredTimeout(t *testing.T) {
 	// - Arrange
 	// every timeout should expire after 1 second
 	storage := storage.NewMemoryStore(1 * time.Second)
 
 	// - Act
-	storage.HandleTimeout("job-id", time.Now())
+	storeError := storage.StoreTimeout("job-id", time.Now())
 
 	time.Sleep(2 * time.Second)
 
-	handled := storage.WasTimeoutHandled("job-id")
+	handled, fetchError := storage.IsTimeoutStored("job-id")
 
 	// - Assert
+	assert.Nil(t, storeError)
+	assert.Nil(t, fetchError)
 	assert.False(t, handled)
 }
