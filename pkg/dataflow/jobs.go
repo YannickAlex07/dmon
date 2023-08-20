@@ -1,16 +1,19 @@
-package api
+package dataflow
 
 import (
 	"context"
-	"errors"
+	"fmt"
+	"strings"
 
-	"github.com/yannickalex07/dmon/pkg/models"
+	"github.com/yannickalex07/dmon/pkg/model"
 	"github.com/yannickalex07/dmon/pkg/util"
 	dataflow "google.golang.org/api/dataflow/v1b3"
 )
 
-func (api API) Jobs(project string, location string) ([]models.Job, error) {
-	ctx := context.Background()
+func (client DataflowClient) Jobs(ctx context.Context) ([]model.Job, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
 	// create service and request
 	service, err := dataflow.NewService(ctx)
@@ -19,30 +22,38 @@ func (api API) Jobs(project string, location string) ([]models.Job, error) {
 	}
 
 	jobService := dataflow.NewProjectsLocationsJobsService(service)
-	req := jobService.List(project, location)
+	req := jobService.List(client.Project, client.Location)
 
 	// request list of jobs
-	var jobs []models.Job
+	var jobs []model.Job
 	err = req.Pages(ctx, func(res *dataflow.ListJobsResponse) error {
 		for _, job := range res.Jobs {
+
+			// check if the name matches a prefix as long as one is required
+			if client.Prefix != "" {
+				matches := strings.HasPrefix(job.Name, client.Prefix)
+				if !matches {
+					continue
+				}
+			}
 
 			// parse timestamps
 			startTime, err := util.ParseTimestamp(job.StartTime)
 			if err != nil {
-				return errors.New("failed to parse start time")
+				return fmt.Errorf("failed to parse state time with: %w", err)
 			}
 
 			statusTime, err := util.ParseTimestamp(job.CurrentStateTime)
 			if err != nil {
-				return errors.New("failed to parse current status time")
+				return fmt.Errorf("failed to parse current status time with %w", err)
 			}
 
 			// add job
-			j := models.Job{
+			j := model.Job{
 				Id:   job.Id,
 				Name: job.Name,
 				Type: job.Type,
-				Status: models.Status{
+				Status: model.Status{
 					Status:    job.CurrentState,
 					UpdatedAt: statusTime,
 				},

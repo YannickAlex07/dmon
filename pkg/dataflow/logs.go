@@ -1,16 +1,18 @@
-package api
+package dataflow
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
-	"github.com/yannickalex07/dmon/pkg/models"
+	"github.com/yannickalex07/dmon/pkg/model"
 	"github.com/yannickalex07/dmon/pkg/util"
 	dataflow "google.golang.org/api/dataflow/v1b3"
 )
 
-func (api API) ErrorLogs(project string, location string, jobId string) ([]models.LogEntry, error) {
-	ctx := context.Background()
+func (client DataflowClient) ErrorLogs(ctx context.Context, jobId string) ([]model.LogEntry, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
 	// create service and request
 	service, err := dataflow.NewService(ctx)
@@ -19,10 +21,10 @@ func (api API) ErrorLogs(project string, location string, jobId string) ([]model
 	}
 
 	jobService := dataflow.NewProjectsLocationsJobsMessagesService(service)
-	req := jobService.List(project, location, jobId)
+	req := jobService.List(client.Project, client.Location, jobId)
 
 	// request list of jobs
-	var entries []models.LogEntry
+	var entries []model.LogEntry
 	err = req.Pages(ctx, func(res *dataflow.ListJobMessagesResponse) error {
 		for _, message := range res.JobMessages {
 			// skip any entry that is not an error
@@ -33,11 +35,11 @@ func (api API) ErrorLogs(project string, location string, jobId string) ([]model
 			// parse timestamps
 			t, err := util.ParseTimestamp(message.Time)
 			if err != nil {
-				return errors.New("failed to parse entry time")
+				return fmt.Errorf("failed to parse entry time with: %w", err)
 			}
 
 			// add entry
-			e := models.LogEntry{
+			e := model.LogEntry{
 				Text: message.MessageText,
 				Time: t,
 			}

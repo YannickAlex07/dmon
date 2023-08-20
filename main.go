@@ -8,16 +8,14 @@ import (
 
 	"github.com/go-co-op/gocron"
 	log "github.com/sirupsen/logrus"
-	"github.com/yannickalex07/dmon/pkg/api"
 	"github.com/yannickalex07/dmon/pkg/config"
-	"github.com/yannickalex07/dmon/pkg/handlers/slack"
-	"github.com/yannickalex07/dmon/pkg/interfaces"
+	"github.com/yannickalex07/dmon/pkg/dataflow"
+	"github.com/yannickalex07/dmon/pkg/handler"
 	"github.com/yannickalex07/dmon/pkg/monitor"
 	"github.com/yannickalex07/dmon/pkg/storage"
 )
 
 func main() {
-
 	// parse CLI arguments
 	configPath := flag.String("c", "./config.yaml", "Path to the config file")
 	flag.Parse()
@@ -26,7 +24,7 @@ func main() {
 	cfg, err := config.Read(*configPath)
 	if err != nil {
 		errStr := fmt.Sprintf("Failed to parse config => %s", err.Error())
-		panic(errStr)
+		log.Fatal(errStr)
 	}
 
 	// setup logging
@@ -42,22 +40,39 @@ func main() {
 	})
 	log.SetOutput(os.Stdout)
 
+	// build dataflow client
+	client := dataflow.DataflowClient{
+		Project:  cfg.Project.Id,
+		Location: cfg.Project.Location,
+	}
+
 	// build handlers
-	handlers := make([]interfaces.Handler, 0)
+	handlers := make([]handler.Handler, 0)
 
 	// slack handler
-	slackHandler := slack.SlackHandler{
-		Token:   cfg.Slack.Token,
-		Channel: cfg.Slack.Channel,
+	slackHandler := handler.SlackHandler{
+		Token:                 cfg.Slack.Token,
+		Channel:               cfg.Slack.Channel,
+		IncludeErrorSection:   cfg.Slack.IncludeErrorSection,
+		IncludeDataflowButton: cfg.Slack.IncludeDataflowButton,
+		GCPConfig: handler.SlackGCPConfig{
+			Id:       cfg.Project.Id,
+			Location: cfg.Project.Location,
+		},
 	}
+
 	handlers = append(handlers, slackHandler)
 
 	// setup state storage
 	stateStore := storage.NewMemoryStore(cfg.ExpireTimeoutDuration())
 
 	// setup and start monitor
+	monCfg := monitor.MonitorConfig{
+		MaxJobTimeout: cfg.MaxTimeoutDuration(),
+	}
+
 	monitorFunc := func() {
-		monitor.Monitor(*cfg, api.API{}, handlers, stateStore)
+		monitor.Monitor(monCfg, client, handlers, stateStore)
 	}
 
 	scheduler := gocron.NewScheduler(time.UTC)

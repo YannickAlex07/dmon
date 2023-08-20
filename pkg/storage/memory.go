@@ -24,19 +24,21 @@ func NewMemoryStore(ttl time.Duration) *MemoryStorage {
 	}
 }
 
-func (s MemoryStorage) GetLatestRuntime() time.Time {
-	return s.lastRunTime
+func (s MemoryStorage) GetLatestExecutionTime() (time.Time, error) {
+	return s.lastRunTime, nil
 }
 
-func (s *MemoryStorage) SetLatestRuntime(newRunTime time.Time) {
-	s.lastRunTime = newRunTime
+func (s *MemoryStorage) SetLatestExecutionTime(t time.Time) error {
+	s.lastRunTime = t
+	return nil
 }
 
-func (s MemoryStorage) TimeoutAlreadyHandled(id string) bool {
+func (s MemoryStorage) IsTimeoutStored(id string) (bool, error) {
 	item := s.cache.Get(id)
-	return item != nil
+	return item != nil, nil
 }
 
-func (s *MemoryStorage) TimeoutHandled(id string) {
-	s.cache.Set(id, time.Now().UTC().String(), ttlcache.DefaultTTL)
+func (s *MemoryStorage) StoreTimeout(id string, t time.Time) error {
+	s.cache.Set(id, t.Format(time.RFC3339), ttlcache.DefaultTTL)
+	return nil
 }

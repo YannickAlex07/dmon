@@ -21,3 +21,8 @@ config.yml
 dist/
 
 tmp/
+
+*.swp
+
+coverage.out
+coverage.html
