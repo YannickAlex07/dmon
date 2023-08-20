@@ -52,12 +52,12 @@ type FakeHandler struct {
 	TimeoutsHandled []model.Job
 }
 
-func (f *FakeHandler) HandleError(job model.Job, entries []model.LogEntry) error {
+func (f *FakeHandler) HandleError(ctx context.Context, job model.Job, entries []model.LogEntry) error {
 	f.ErrorsHandled = append(f.ErrorsHandled, HandledErrors{Job: job, Entries: entries})
 	return nil
 }
 
-func (f *FakeHandler) HandleTimeout(job model.Job) error {
+func (f *FakeHandler) HandleTimeout(ctx context.Context, job model.Job) error {
 	f.TimeoutsHandled = append(f.TimeoutsHandled, job)
 	return nil
 }
@@ -84,10 +84,18 @@ type FakeStateStore struct {
 func (f FakeStateStore) GetLatestExecutionTime() (time.Time, error) {
 	return f.ExecutionTimeConfig.LatestExecutionTimeReturnValue, f.ExecutionTimeConfig.LatestExecutionTimeErrorValue
 }
-func (f *FakeStateStore) SetLatestExecutionTime(t time.Time) { f.ExecutionTimeConfig.SetLatestTime = t }
+func (f *FakeStateStore) SetLatestExecutionTime(t time.Time) error {
+	f.ExecutionTimeConfig.SetLatestTime = t
+	return nil
+}
 
-func (f FakeStateStore) WasTimeoutHandled(id string) bool     { return f.TimeoutConfig.WasHandledMap[id] }
-func (f FakeStateStore) HandleTimeout(id string, t time.Time) { f.TimeoutConfig.Handled[id] = t }
+func (f FakeStateStore) IsTimeoutStored(id string) (bool, error) {
+	return f.TimeoutConfig.WasHandledMap[id], nil
+}
+func (f FakeStateStore) StoreTimeout(id string, t time.Time) error {
+	f.TimeoutConfig.Handled[id] = t
+	return nil
+}
 
 // TESTS
 
