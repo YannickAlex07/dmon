@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -16,6 +17,8 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
+
 	// parse CLI arguments
 	configPath := flag.String("c", "./config.yaml", "Path to the config file")
 	flag.Parse()
@@ -72,7 +75,7 @@ func main() {
 	}
 
 	monitorFunc := func() {
-		monitor.Monitor(monCfg, client, handlers, stateStore)
+		monitor.Monitor(ctx, monCfg, client, handlers, stateStore)
 	}
 
 	scheduler := gocron.NewScheduler(time.UTC)

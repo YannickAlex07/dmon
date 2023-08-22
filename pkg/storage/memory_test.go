@@ -1,6 +1,7 @@
 package storage_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -10,14 +11,16 @@ import (
 
 func TestMemoryStoreGetAndSetExecutionTime(t *testing.T) {
 	// - Arrange
+	ctx := context.Background()
+
 	storage := storage.NewMemoryStore(1 * time.Hour)
 
 	// we append some time to make sure no time.Now() can be accidentally correct
 	lastExecutionTime := time.Now().Add(1 * time.Hour)
 
 	// - Act
-	storeError := storage.SetLatestExecutionTime(lastExecutionTime)
-	fetchedTime, fetchError := storage.GetLatestExecutionTime()
+	storeError := storage.SetLatestExecutionTime(ctx, lastExecutionTime)
+	fetchedTime, fetchError := storage.GetLatestExecutionTime(ctx)
 
 	// - Assert
 	assert.Nil(t, storeError)
@@ -27,10 +30,12 @@ func TestMemoryStoreGetAndSetExecutionTime(t *testing.T) {
 
 func TestMemoryStoreIsTimeoutStoredWithNonStoredTimeout(t *testing.T) {
 	// - Arrange
+	ctx := context.Background()
+
 	storage := storage.NewMemoryStore(1 * time.Hour)
 
 	// - Act
-	handled, err := storage.IsTimeoutStored("job-id")
+	handled, err := storage.IsTimeoutStored(ctx, "job-id")
 
 	// - Assert
 	assert.Nil(t, err)
@@ -39,11 +44,13 @@ func TestMemoryStoreIsTimeoutStoredWithNonStoredTimeout(t *testing.T) {
 
 func TestMemoryStoreIsTimeoutStoredWithStoredTimeout(t *testing.T) {
 	// - Arrange
+	ctx := context.Background()
+
 	storage := storage.NewMemoryStore(1 * time.Hour)
 
 	// - Act
-	storeError := storage.StoreTimeout("job-id", time.Now())
-	handled, fetchError := storage.IsTimeoutStored("job-id")
+	storeError := storage.StoreTimeout(ctx, "job-id", time.Now())
+	handled, fetchError := storage.IsTimeoutStored(ctx, "job-id")
 
 	// - Assert
 	assert.Nil(t, storeError)
@@ -53,15 +60,17 @@ func TestMemoryStoreIsTimeoutStoredWithStoredTimeout(t *testing.T) {
 
 func TestMemoryStoreIsTimeoutStoredWithExpiredTimeout(t *testing.T) {
 	// - Arrange
+	ctx := context.Background()
+
 	// every timeout should expire after 1 second
 	storage := storage.NewMemoryStore(1 * time.Second)
 
 	// - Act
-	storeError := storage.StoreTimeout("job-id", time.Now())
+	storeError := storage.StoreTimeout(ctx, "job-id", time.Now())
 
 	time.Sleep(2 * time.Second)
 
-	handled, fetchError := storage.IsTimeoutStored("job-id")
+	handled, fetchError := storage.IsTimeoutStored(ctx, "job-id")
 
 	// - Assert
 	assert.Nil(t, storeError)

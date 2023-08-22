@@ -16,12 +16,11 @@ type MonitorConfig struct {
 	MaxJobTimeout time.Duration
 }
 
-func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Handler, stateStore storage.Storage) error {
+func Monitor(ctx context.Context, cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Handler, stateStore storage.Storage) error {
 	log.Info("Starting new run.")
-	ctx := context.Background()
 
 	// checking job status
-	lastExecutionTime, err := stateStore.GetLatestExecutionTime()
+	lastExecutionTime, err := stateStore.GetLatestExecutionTime(ctx)
 	if err != nil {
 		log.Warningf("Failed to fetch latest execution time from state store! Using now().")
 		lastExecutionTime = time.Now().UTC()
@@ -95,7 +94,7 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 				log.Infof("Job %s crossed max allowed timeout duration with a total runtime of %s", job.Id, totalRunTime.Round(time.Second))
 
 				// check if notification for job was already send
-				isStored, err := stateStore.IsTimeoutStored(job.Id)
+				isStored, err := stateStore.IsTimeoutStored(ctx, job.Id)
 				if err != nil {
 					log.Errorf("failed to fetch if timeout is stored: %s", err.Error())
 					isStored = false
@@ -111,7 +110,7 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 						}
 					}
 
-					err := stateStore.StoreTimeout(job.Id, time.Now().UTC())
+					err := stateStore.StoreTimeout(ctx, job.Id, time.Now().UTC())
 					if err != nil {
 						log.Errorf("failed to store timeout with err: %s", err.Error())
 					}
@@ -122,7 +121,7 @@ func Monitor(cfg MonitorConfig, client dataflow.Dataflow, handlers []handler.Han
 		}
 	}
 
-	err = stateStore.SetLatestExecutionTime(time.Now().UTC())
+	err = stateStore.SetLatestExecutionTime(ctx, time.Now().UTC())
 	if err != nil {
 		log.Errorf("failed to set latest execution time: %s", err.Error())
 	}

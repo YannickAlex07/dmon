@@ -96,18 +96,18 @@ type FakeStateStore struct {
 	TimeoutConfig       TimeoutConfig
 }
 
-func (f FakeStateStore) GetLatestExecutionTime() (time.Time, error) {
+func (f FakeStateStore) GetLatestExecutionTime(ctx context.Context) (time.Time, error) {
 	return f.ExecutionTimeConfig.GetValue, f.ExecutionTimeConfig.GetError
 }
-func (f *FakeStateStore) SetLatestExecutionTime(t time.Time) error {
+func (f *FakeStateStore) SetLatestExecutionTime(ctx context.Context, t time.Time) error {
 	f.ExecutionTimeConfig.SetValue = t
 	return f.ExecutionTimeConfig.SetError
 }
 
-func (f FakeStateStore) IsTimeoutStored(id string) (bool, error) {
+func (f FakeStateStore) IsTimeoutStored(ctx context.Context, id string) (bool, error) {
 	return f.TimeoutConfig.IsStoredMap[id], f.TimeoutConfig.IsStoredError
 }
-func (f FakeStateStore) StoreTimeout(id string, t time.Time) error {
+func (f FakeStateStore) StoreTimeout(ctx context.Context, id string, t time.Time) error {
 	f.TimeoutConfig.Stored[id] = t
 	return f.TimeoutConfig.StoredError
 }
@@ -119,6 +119,7 @@ func (f FakeStateStore) StoreTimeout(id string, t time.Time) error {
 // requests. Therefore this tests is basically asserting all the core logic.
 func TestMonitor(t *testing.T) {
 	// - Arrange
+	ctx := context.Background()
 	lastExecutionTime := time.Now().UTC()
 
 	jobs := []FakeJob{
@@ -248,7 +249,7 @@ func TestMonitor(t *testing.T) {
 	}
 
 	// - Act
-	err := monitor.Monitor(cfg, dataflow, []handler.Handler{&fakeHandler}, stateStore)
+	err := monitor.Monitor(ctx, cfg, dataflow, []handler.Handler{&fakeHandler}, stateStore)
 
 	// - Assert
 	assert.Nil(t, err)
@@ -280,6 +281,8 @@ func TestMonitor(t *testing.T) {
 // Expected is that the monitor just returns an error.
 func TestMonitorFailsToFetchJobs(t *testing.T) {
 	// - Arrange
+	ctx := context.Background()
+
 	dataflow := FakeDataflow{
 		FakeJobs:          []FakeJob{},
 		JobsFetchError:    errors.New("error"),
@@ -306,7 +309,7 @@ func TestMonitorFailsToFetchJobs(t *testing.T) {
 	}
 
 	// - Act
-	err := monitor.Monitor(cfg, dataflow, make([]handler.Handler, 0), stateStore)
+	err := monitor.Monitor(ctx, cfg, dataflow, make([]handler.Handler, 0), stateStore)
 
 	// - Assert
 	assert.Error(t, err)
@@ -316,6 +319,8 @@ func TestMonitorFailsToFetchJobs(t *testing.T) {
 // Expected is that the handled will just receive empty error logs.
 func TestMonitorFailsToFetchErrorLogs(t *testing.T) {
 	// - Arrange
+	ctx := context.Background()
+
 	lastExecutionTime := time.Now().UTC()
 
 	jobs := []FakeJob{
@@ -372,7 +377,7 @@ func TestMonitorFailsToFetchErrorLogs(t *testing.T) {
 	}
 
 	// - Act
-	err := monitor.Monitor(cfg, dataflow, []handler.Handler{&fakeHandler}, stateStore)
+	err := monitor.Monitor(ctx, cfg, dataflow, []handler.Handler{&fakeHandler}, stateStore)
 
 	// - Assert
 	assert.Nil(t, err)
@@ -390,6 +395,8 @@ func TestMonitorFailsToFetchErrorLogs(t *testing.T) {
 // Expected is simply that we will take the current time as the last execution time.
 func TestMonitorFailsToFetchExecutionTime(t *testing.T) {
 	// - Arrange
+	ctx := context.Background()
+
 	lastExecutionTime := time.Now().UTC().Add(-1 * time.Hour)
 
 	jobs := []FakeJob{
@@ -450,7 +457,7 @@ func TestMonitorFailsToFetchExecutionTime(t *testing.T) {
 	}
 
 	// - Act
-	err := monitor.Monitor(cfg, dataflow, []handler.Handler{&fakeHandler}, stateStore)
+	err := monitor.Monitor(ctx, cfg, dataflow, []handler.Handler{&fakeHandler}, stateStore)
 
 	// - Assert
 	assert.Nil(t, err)
@@ -462,6 +469,8 @@ func TestMonitorFailsToFetchExecutionTime(t *testing.T) {
 // Expected is that we just assume it was never handled.
 func TestMonitorFailsTimeoutStoredCheck(t *testing.T) {
 	// - Arrange
+	ctx := context.Background()
+
 	lastExecutionTime := time.Now().UTC().Add(-1 * time.Hour)
 
 	jobs := []FakeJob{
@@ -521,7 +530,7 @@ func TestMonitorFailsTimeoutStoredCheck(t *testing.T) {
 	}
 
 	// - Act
-	err := monitor.Monitor(cfg, dataflow, []handler.Handler{&fakeHandler}, stateStore)
+	err := monitor.Monitor(ctx, cfg, dataflow, []handler.Handler{&fakeHandler}, stateStore)
 
 	// - Assert
 	assert.Nil(t, err)
