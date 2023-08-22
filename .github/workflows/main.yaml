@@ -1,6 +1,9 @@
-name: Pull Request
+name: Main
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - "main"
 
 jobs:
   coverage:
