@@ -1,5 +1,7 @@
 package gmon
 
+import "context"
+
 type Handler interface {
-	Handle()
+	Handle(ctx context.Context, notification Notification) error
 }
