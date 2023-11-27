@@ -2,12 +2,11 @@ package checker
 
 import (
 	"context"
-
-	gmon "github.com/yannickalex07/dmon/pkg"
+	"time"
 )
 
 type StackdriverChecker struct{}
 
-func (c StackdriverChecker) Check(ctx context.Context, handlers []gmon.Handler) error {
+func (c StackdriverChecker) Check(ctx context.Context, since time.Time) error {
 	return nil
 }
