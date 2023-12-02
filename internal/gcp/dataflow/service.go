@@ -57,7 +57,7 @@ func (j DataflowJob) IsStreaming() bool {
 
 // Check if the job is a streaming job.
 func (j DataflowJob) IsBatch() bool {
-	return j.Type == "JOB_TYPE_STREAMING"
+	return j.Type == "JOB_TYPE_BATCH"
 }
 
 // Check the current runtime of the job. This is calculating by taking the time
