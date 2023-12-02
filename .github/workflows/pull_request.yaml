@@ -14,8 +14,16 @@ jobs:
         with:
           go-version: "1.21"
 
-      # - name: Collect Coverage
-      #   run: go test ./... -race -coverprofile=coverage.out -covermode=atomic
+      - name: Setuo `gocover-cobertura`
+        run: |
+          go get github.com/boumenot/gocover-cobertura && go install github.com/boumenot/gocover-cobertura
+
+      - name: Setup `gotestfmt`
+        uses: GoTestTools/gotestfmt-action@v2
+        with:
+          # Optional: pass an organization name and repo to use a fork
+          org: GoTestTools
+          repo: gotestfmt
 
       - name: Run Tests
         run: go test -race -json -v -coverprofile=coverage.txt ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
@@ -41,8 +49,3 @@ jobs:
         with:
           recreate: true
           path: code-coverage-results.md
-
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v3
-      #   env:
-      #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
