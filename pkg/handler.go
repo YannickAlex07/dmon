@@ -1,4 +1,4 @@
-package gmon
+package siren
 
 import "context"
 

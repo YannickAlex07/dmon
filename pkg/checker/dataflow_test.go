@@ -1,31 +1,27 @@
 package checker_test
 
-// import (
-// 	"testing"
+import (
+	"context"
+	"testing"
+	"time"
 
-// 	"github.com/yannickalex07/dmon/pkg/checker"
-// 	"google.golang.org/api/option"
-// )
+	dataflow "github.com/yannickalex07/dmon/internal/gcp/dataflow"
+	"github.com/yannickalex07/dmon/pkg/checker"
+)
 
-// func TestDataflowChecker(t *testing.T) {
-// 	// Arrange
-// 	_ = checker.DataflowChecker{
-// 		Project:  "my-project",
-// 		Location: "europe-west1",
-// 		JobFilter: func(job checker.DataflowJob) bool {
-// 			return true
-// 		},
-// 		ServiceOptions: []option.ClientOption{
-// 			option.WithoutAuthentication(),
-// 			option.WithEndpoint(""),
-// 		},
-// 	}
+func TestDataflowChecker(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
 
-// 	// Act
+	_ = checker.NewDataflowChecker(ctx, "my-project", "europe-west1", func(job dataflow.DataflowJob) bool {
+		return true
+	}, time.Hour*10)
 
-// 	// Assert
-// 	t.Fail()
-// }
+	// Act
+
+	// Assert
+	t.Fail()
+}
 
 // func TestDataflowCheckerWithJobFilter(t *testing.T) {
 // 	// Arrange

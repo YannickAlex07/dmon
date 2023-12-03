@@ -1,4 +1,4 @@
-package gmon
+package siren
 
 import "net/url"
 
@@ -7,8 +7,8 @@ type Notification struct {
 	// The title of the notification
 	Title string
 
-	// An overview over what the notification is about
-	Overview string
+	// The description of what the notification is about
+	Description string
 
 	// Logs associated with the notification
 	Logs []string

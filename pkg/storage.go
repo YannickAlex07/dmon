@@ -1,4 +1,4 @@
-package gmon
+package siren
 
 import (
 	"context"
@@ -7,4 +7,5 @@ import (
 type Storage interface {
 	Store(ctx context.Context, key string, value interface{}) error
 	Get(ctx context.Context, key string) (interface{}, error)
+	Exists(ctx context.Context, key string) (bool, error)
 }

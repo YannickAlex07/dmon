@@ -68,10 +68,10 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]siren.No
 
 				// create the notification
 				n := siren.Notification{
-					Title:    "❌ Dataflow Job Failed",
-					Overview: "",
-					Logs:     logs,
-					Links:    c.links(job),
+					Title:       "❌ Dataflow Job Failed",
+					Description: "",
+					Logs:        logs,
+					Links:       c.links(job),
 				}
 
 				notifications = append(notifications, n)
@@ -82,10 +82,10 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]siren.No
 		if !job.IsStreaming() && job.Status.IsRunning() {
 			if job.Runtime() >= c.timeout {
 				n := siren.Notification{
-					Title:    "⏱️ Dataflow Job Running For Too Long",
-					Overview: "",
-					Logs:     []string{},
-					Links:    c.links(job),
+					Title:       "⏱️ Dataflow Job Running For Too Long",
+					Description: "",
+					Logs:        []string{},
+					Links:       c.links(job),
 				}
 
 				notifications = append(notifications, n)
