@@ -31,7 +31,7 @@ type DataflowJob struct {
 	Name string
 
 	// The raw type of the job. You can check this field manually or use
-	// the provided `IsXXX()`-methods on this struct to check it.
+	// the provided `IsStreaming()` or `IsBatch()` method on this struct to check it.
 	Type string
 
 	// The time that the job started according to the Dataflow backend.

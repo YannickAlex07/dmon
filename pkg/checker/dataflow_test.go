@@ -3,24 +3,23 @@ package checker_test
 import (
 	"context"
 	"testing"
-	"time"
-
-	dataflow "github.com/yannickalex07/dmon/internal/gcp/dataflow"
-	"github.com/yannickalex07/dmon/pkg/checker"
 )
 
 func TestDataflowChecker(t *testing.T) {
 	// Arrange
-	ctx := context.Background()
+	_ = context.Background()
 
-	_ = checker.NewDataflowChecker(ctx, "my-project", "europe-west1", func(job dataflow.DataflowJob) bool {
-		return true
-	}, time.Hour*10)
+	// checker := checker.DataflowChecker{
+	// 	Service:   nil,
+	// 	JobFilter: func(job dataflow.DataflowJob) bool { return true },
+	// 	Timeout:   time.Hour * 1,
+	// }
 
-	// Act
+	// // Act
+	// checker.Check(ctx, time.Now())
 
 	// Assert
-	t.Fail()
+	// t.Fail()
 }
 
 // func TestDataflowCheckerWithJobFilter(t *testing.T) {

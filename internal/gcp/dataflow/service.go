@@ -7,13 +7,14 @@ import (
 
 	"github.com/yannickalex07/dmon/pkg/util"
 	dataflow "google.golang.org/api/dataflow/v1b3"
+	"google.golang.org/api/option"
 )
 
 // Service Facade
 
 type DataflowService interface {
 	ListJobs(ctx context.Context) ([]DataflowJob, error)
-	GetLogs(ctx context.Context, jobId string) ([]LogEntry, error)
+	GetErrorLogs(ctx context.Context, jobId string) ([]DataflowLogEntry, error)
 }
 
 // Servcie Implementation
@@ -25,11 +26,11 @@ type dataflowService struct {
 	service *dataflow.Service
 }
 
-func NewDataflowService(ctx context.Context, project string, location string) DataflowService {
+func NewDataflowService(ctx context.Context, project string, location string, options []option.ClientOption) DataflowService {
 	// create dataflow service
-	service, err := dataflow.NewService(ctx)
+	service, err := dataflow.NewService(ctx, options...)
 	if err != nil {
-		log.Fatalf("unable to create translate service, shutting down: %v", err)
+		log.Fatalf("unable to create dataflow service: %v", err)
 	}
 
 	return &dataflowService{
@@ -85,11 +86,11 @@ func (s *dataflowService) ListJobs(ctx context.Context) ([]DataflowJob, error) {
 	return jobs, nil
 }
 
-func (s *dataflowService) GetLogs(ctx context.Context, jobId string) ([]LogEntry, error) {
+func (s *dataflowService) GetErrorLogs(ctx context.Context, jobId string) ([]DataflowLogEntry, error) {
 	jobService := dataflow.NewProjectsLocationsJobsMessagesService(s.service)
 	req := jobService.List(s.project, s.location, jobId)
 
-	entries := []LogEntry{}
+	entries := []DataflowLogEntry{}
 	err := req.Pages(ctx, func(res *dataflow.ListJobMessagesResponse) error {
 		for _, message := range res.JobMessages {
 			// skip any entry that is not an error
@@ -104,9 +105,10 @@ func (s *dataflowService) GetLogs(ctx context.Context, jobId string) ([]LogEntry
 			}
 
 			// add entry
-			e := LogEntry{
-				Text: message.MessageText,
-				Time: t,
+			e := DataflowLogEntry{
+				Text:  message.MessageText,
+				Level: message.MessageImportance,
+				Time:  t,
 			}
 
 			entries = append(entries, e)

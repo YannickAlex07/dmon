@@ -14,30 +14,20 @@ import (
 // A checker for Dataflow.
 // Will check for failed jobs as well as batch jobs that run for too long.
 type DataflowChecker struct {
-	service dataflow.DataflowService
+	Service dataflow.DataflowService
 
 	// A custom filter that can be used to filter out specific jobs to check.
 	// Don't use that field to filter for failed jobs or jobs that run for too long,
 	// this will already be done by the Checker itself.
-	jobFilter func(dataflow.DataflowJob) bool
+	JobFilter func(dataflow.DataflowJob) bool
 
 	// Configure when a job is marked as timed out.
-	timeout time.Duration
-}
-
-func NewDataflowChecker(ctx context.Context, project string, location string, jobFilter func(dataflow.DataflowJob) bool, timeout time.Duration) DataflowChecker {
-	service := dataflow.NewDataflowService(ctx, project, location)
-
-	return DataflowChecker{
-		service:   service,
-		jobFilter: jobFilter,
-		timeout:   timeout,
-	}
+	Timeout time.Duration
 }
 
 func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]siren.Notification, error) {
 	// list all jobs
-	jobs, err := c.service.ListJobs(ctx)
+	jobs, err := c.Service.ListJobs(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +35,7 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]siren.No
 	notifications := []siren.Notification{}
 	for _, job := range jobs {
 		// filter down jobs by the provided filter
-		if !c.jobFilter(job) {
+		if !c.JobFilter(job) {
 			continue
 		}
 
@@ -56,7 +46,7 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]siren.No
 				// request error logs
 				logs := []string{}
 
-				l, err := c.service.GetLogs(ctx, job.Id)
+				l, err := c.Service.GetErrorLogs(ctx, job.Id)
 				if err != nil {
 					// log error event
 					logs = append(logs, "Failed to fetch logs...")
@@ -80,7 +70,7 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]siren.No
 
 		// check runtime of running batch jobs
 		if !job.IsStreaming() && job.Status.IsRunning() {
-			if job.Runtime() >= c.timeout {
+			if job.Runtime() >= c.Timeout {
 				n := siren.Notification{
 					Title:       "⏱️ Dataflow Job Running For Too Long",
 					Description: "",
