@@ -14,38 +14,8 @@ jobs:
         with:
           go-version: "1.21"
 
-      - name: Setuo `gocover-cobertura`
-        run: |
-          go get github.com/boumenot/gocover-cobertura && go install github.com/boumenot/gocover-cobertura
-
-      - name: Setup `gotestfmt`
-        uses: GoTestTools/gotestfmt-action@v2
-        with:
-          # Optional: pass an organization name and repo to use a fork
-          org: GoTestTools
-          repo: gotestfmt
-
       - name: Run Tests
-        run: go test -race -json -v -coverprofile=coverage.txt -coverpkg=./... ./...
+        run: go test -race -coverprofile=coverage.out -covermode=atomic
 
-      - name: Convert Coverage to Corbetura Format
-        run: gocover-cobertura < coverage.txt > coverage.xml
-
-      - name: Generate Coverage Report
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        with:
-          filename: coverage.xml
-          badge: false
-          fail_below_min: false
-          format: markdown
-          hide_branch_rate: false
-          hide_complexity: true
-          indicators: true
-          output: both
-          thresholds: "60 80"
-
-      - name: Add Comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          recreate: true
-          path: code-coverage-results.md
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v3
