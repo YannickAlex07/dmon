@@ -14,6 +14,6 @@ func (*DataflowServiceMock) ListJobs(ctx context.Context) ([]dataflow.DataflowJo
 	return nil, nil
 }
 
-func (*DataflowServiceMock) GetLogs(ctx context.Context, jobId string) ([]dataflow.DataflowLogEntry, error) {
+func (*DataflowServiceMock) GetLogs(ctx context.Context, jobId string) ([]dataflow.DataflowLogMessage, error) {
 	return nil, nil
 }

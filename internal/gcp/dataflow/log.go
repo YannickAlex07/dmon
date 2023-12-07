@@ -3,7 +3,7 @@ package dataflow
 import "time"
 
 // A Google log entry
-type DataflowLogEntry struct {
+type DataflowLogMessage struct {
 	Text  string
 	Level string
 	Time  time.Time

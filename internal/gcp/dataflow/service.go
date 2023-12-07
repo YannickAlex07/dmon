@@ -14,7 +14,7 @@ import (
 
 type DataflowService interface {
 	ListJobs(ctx context.Context) ([]DataflowJob, error)
-	GetErrorLogs(ctx context.Context, jobId string) ([]DataflowLogEntry, error)
+	GetErrorLogs(ctx context.Context, jobId string) ([]DataflowLogMessage, error)
 }
 
 // Servcie Implementation
@@ -58,7 +58,7 @@ func (s *dataflowService) ListJobs(ctx context.Context) ([]DataflowJob, error) {
 			// parse updated time
 			statusTime, err := util.ParseTimestamp(j.CurrentStateTime)
 			if err != nil {
-				return fmt.Errorf("failed to parse start time with: %w", err)
+				return fmt.Errorf("failed to parse status time with: %w", err)
 			}
 
 			// create dataflow job
@@ -86,11 +86,11 @@ func (s *dataflowService) ListJobs(ctx context.Context) ([]DataflowJob, error) {
 	return jobs, nil
 }
 
-func (s *dataflowService) GetErrorLogs(ctx context.Context, jobId string) ([]DataflowLogEntry, error) {
+func (s *dataflowService) GetErrorLogs(ctx context.Context, jobId string) ([]DataflowLogMessage, error) {
 	jobService := dataflow.NewProjectsLocationsJobsMessagesService(s.service)
 	req := jobService.List(s.project, s.location, jobId)
 
-	entries := []DataflowLogEntry{}
+	entries := []DataflowLogMessage{}
 	err := req.Pages(ctx, func(res *dataflow.ListJobMessagesResponse) error {
 		for _, message := range res.JobMessages {
 			// skip any entry that is not an error
@@ -101,11 +101,11 @@ func (s *dataflowService) GetErrorLogs(ctx context.Context, jobId string) ([]Dat
 			// parse timestamps
 			t, err := util.ParseTimestamp(message.Time)
 			if err != nil {
-				return fmt.Errorf("failed to parse entry time with: %w", err)
+				return fmt.Errorf("failed to parse message time with: %w", err)
 			}
 
 			// add entry
-			e := DataflowLogEntry{
+			e := DataflowLogMessage{
 				Text:  message.MessageText,
 				Level: message.MessageImportance,
 				Time:  t,

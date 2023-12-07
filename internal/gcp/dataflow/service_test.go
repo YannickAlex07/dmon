@@ -14,6 +14,8 @@ import (
 	"google.golang.org/api/option"
 )
 
+// LISTING JOBS
+
 func TestDataflowServiceListJobs(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
@@ -93,4 +95,204 @@ func TestDataflowServiceListJobs(t *testing.T) {
 
 	// Assert
 	assert.ElementsMatch(t, expectedJobs, jobs)
+}
+
+func TestDataflowServiceListJobsWithInvalidStartTime(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// create response
+		resp := &gDataflow.ListJobsResponse{
+			Jobs: []*gDataflow.Job{
+				{
+					Id:               "1",
+					Name:             "my-job-1",
+					CurrentState:     "JOB_STATE_RUNNING",
+					Type:             "JOB_TYPE_BATCH",
+					CurrentStateTime: "invalid-timestamp",
+					StartTime:        "invalid-timestamp",
+				},
+			},
+		}
+
+		// marhsal response
+		b, err := json.Marshal(resp)
+		if err != nil {
+			http.Error(w, "unable to marshal request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		w.Write(b)
+	}))
+
+	defer server.Close()
+
+	service := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
+		option.WithoutAuthentication(),
+		option.WithEndpoint(server.URL),
+	})
+
+	// Act
+	jobs, err := service.ListJobs(ctx)
+
+	// Assert
+	assert.Error(t, err)
+	assert.ErrorContains(t, err, "failed to parse start time")
+
+	assert.Empty(t, jobs)
+}
+
+func TestDataflowServiceListJobsWithInvalidUpdatedTime(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+	startTime := time.Now().UTC().Round(time.Second)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// create response
+		resp := &gDataflow.ListJobsResponse{
+			Jobs: []*gDataflow.Job{
+				{
+					Id:               "1",
+					Name:             "my-job-1",
+					CurrentState:     "JOB_STATE_RUNNING",
+					Type:             "JOB_TYPE_BATCH",
+					CurrentStateTime: "invalid-timestamp",
+					StartTime:        startTime.Format(time.RFC3339),
+				},
+			},
+		}
+
+		// marhsal response
+		b, err := json.Marshal(resp)
+		if err != nil {
+			http.Error(w, "unable to marshal request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		w.Write(b)
+	}))
+
+	defer server.Close()
+
+	service := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
+		option.WithoutAuthentication(),
+		option.WithEndpoint(server.URL),
+	})
+
+	// Act
+	jobs, err := service.ListJobs(ctx)
+
+	// Assert
+	assert.Error(t, err)
+	assert.ErrorContains(t, err, "failed to parse status time")
+
+	assert.Empty(t, jobs)
+}
+
+// GETTING ERROR LOGS
+
+func TestDataflowServiceGetErrorLogs(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+	now := time.Now().UTC().Round(time.Second)
+
+	expectedLogs := []dataflow.DataflowLogMessage{
+		{
+			Text:  "error message",
+			Level: "JOB_MESSAGE_ERROR",
+			Time:  now,
+		},
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// create response
+		resp := &gDataflow.ListJobMessagesResponse{
+			JobMessages: []*gDataflow.JobMessage{
+				{
+					MessageImportance: "JOB_MESSAGE_BASIC",
+					MessageText:       "basic message",
+					Time:              now.Format(time.RFC3339),
+				},
+				{
+					MessageImportance: "JOB_MESSAGE_WARNING",
+					MessageText:       "warning message",
+					Time:              now.Format(time.RFC3339),
+				},
+				{
+					MessageImportance: "JOB_MESSAGE_ERROR",
+					MessageText:       "error message",
+					Time:              now.Format(time.RFC3339),
+				},
+			},
+		}
+
+		// marhsal response
+		b, err := json.Marshal(resp)
+		if err != nil {
+			http.Error(w, "unable to marshal request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		w.Write(b)
+	}))
+
+	defer server.Close()
+
+	service := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
+		option.WithoutAuthentication(),
+		option.WithEndpoint(server.URL),
+	})
+
+	// Act
+	logs, err := service.GetErrorLogs(ctx, "my-job")
+	if err != nil {
+		assert.FailNow(t, "failed to get error logs with: %v", err)
+	}
+
+	// Assert
+	assert.ElementsMatch(t, expectedLogs, logs)
+}
+
+func TestDataflowServiceGetErrorLogsWithInvalidTime(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// create response
+		resp := &gDataflow.ListJobMessagesResponse{
+			JobMessages: []*gDataflow.JobMessage{
+				{
+					MessageImportance: "JOB_MESSAGE_ERROR",
+					MessageText:       "error message",
+					Time:              "invalid time",
+				},
+			},
+		}
+
+		// marhsal response
+		b, err := json.Marshal(resp)
+		if err != nil {
+			http.Error(w, "unable to marshal request: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		w.Write(b)
+	}))
+
+	defer server.Close()
+
+	service := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
+		option.WithoutAuthentication(),
+		option.WithEndpoint(server.URL),
+	})
+
+	// Act
+	logs, err := service.GetErrorLogs(ctx, "my-job")
+
+	// Assert
+	assert.Error(t, err)
+	assert.ErrorContains(t, err, "failed to parse message time")
+
+	assert.Empty(t, logs)
 }
