@@ -23,13 +23,13 @@ func TestDataflowServiceListJobs(t *testing.T) {
 	udpatedTime := time.Now().UTC().Round(time.Second)
 	startTime := udpatedTime.Add(-time.Hour * 1)
 
-	expectedJobs := []dataflow.DataflowJob{
+	expectedJobs := []dataflow.Job{
 		{
 			Id:        "1",
 			Name:      "my-job-1",
 			Type:      "JOB_TYPE_BATCH",
 			StartTime: startTime,
-			Status: dataflow.DataflowJobStatus{
+			Status: dataflow.JobStatus{
 				Status:    "JOB_STATE_RUNNING",
 				UpdatedAt: udpatedTime,
 			},
@@ -39,7 +39,7 @@ func TestDataflowServiceListJobs(t *testing.T) {
 			Name:      "my-job-2",
 			Type:      "JOB_TYPE_STREAMING",
 			StartTime: startTime,
-			Status: dataflow.DataflowJobStatus{
+			Status: dataflow.JobStatus{
 				Status:    "JOB_STATE_DONE",
 				UpdatedAt: udpatedTime,
 			},
@@ -192,15 +192,15 @@ func TestDataflowServiceListJobsWithInvalidUpdatedTime(t *testing.T) {
 
 // GETTING ERROR LOGS
 
-func TestDataflowServiceGetErrorLogs(t *testing.T) {
+func TestDataflowServiceGetLogs(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
 	now := time.Now().UTC().Round(time.Second)
 
-	expectedLogs := []dataflow.DataflowLogMessage{
+	expectedLogs := []dataflow.LogMessage{
 		{
 			Text:  "error message",
-			Level: "JOB_MESSAGE_ERROR",
+			Level: dataflow.LEVEL_ERROR,
 			Time:  now,
 		},
 	}
@@ -209,16 +209,6 @@ func TestDataflowServiceGetErrorLogs(t *testing.T) {
 		// create response
 		resp := &gDataflow.ListJobMessagesResponse{
 			JobMessages: []*gDataflow.JobMessage{
-				{
-					MessageImportance: "JOB_MESSAGE_BASIC",
-					MessageText:       "basic message",
-					Time:              now.Format(time.RFC3339),
-				},
-				{
-					MessageImportance: "JOB_MESSAGE_WARNING",
-					MessageText:       "warning message",
-					Time:              now.Format(time.RFC3339),
-				},
 				{
 					MessageImportance: "JOB_MESSAGE_ERROR",
 					MessageText:       "error message",
@@ -245,7 +235,7 @@ func TestDataflowServiceGetErrorLogs(t *testing.T) {
 	})
 
 	// Act
-	logs, err := service.GetErrorLogs(ctx, "my-job")
+	logs, err := service.GetLogs(ctx, "my-job", dataflow.LEVEL_ERROR)
 	if err != nil {
 		assert.FailNow(t, "failed to get error logs with: %v", err)
 	}
@@ -254,7 +244,7 @@ func TestDataflowServiceGetErrorLogs(t *testing.T) {
 	assert.ElementsMatch(t, expectedLogs, logs)
 }
 
-func TestDataflowServiceGetErrorLogsWithInvalidTime(t *testing.T) {
+func TestDataflowServiceGetLogsWithInvalidTime(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
 
@@ -288,7 +278,7 @@ func TestDataflowServiceGetErrorLogsWithInvalidTime(t *testing.T) {
 	})
 
 	// Act
-	logs, err := service.GetErrorLogs(ctx, "my-job")
+	logs, err := service.GetLogs(ctx, "my-job", dataflow.LEVEL_ERROR)
 
 	// Assert
 	assert.Error(t, err)

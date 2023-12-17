@@ -13,8 +13,8 @@ import (
 // Service Facade
 
 type DataflowService interface {
-	ListJobs(ctx context.Context) ([]DataflowJob, error)
-	GetErrorLogs(ctx context.Context, jobId string) ([]DataflowLogMessage, error)
+	ListJobs(ctx context.Context) ([]Job, error)
+	GetLogs(ctx context.Context, jobId string, minLevel MessageLevel) ([]LogMessage, error)
 }
 
 // Servcie Implementation
@@ -40,13 +40,13 @@ func NewDataflowService(ctx context.Context, project string, location string, op
 	}
 }
 
-func (s *dataflowService) ListJobs(ctx context.Context) ([]DataflowJob, error) {
+func (s *dataflowService) ListJobs(ctx context.Context) ([]Job, error) {
 	// create list request
 	jobService := dataflow.NewProjectsLocationsJobsService(s.service)
 	req := jobService.List(s.project, s.location)
 
 	// loop through pages
-	jobs := []DataflowJob{}
+	jobs := []Job{}
 	err := req.Pages(ctx, func(res *dataflow.ListJobsResponse) error {
 		for _, j := range res.Jobs {
 			// parse start time
@@ -62,12 +62,12 @@ func (s *dataflowService) ListJobs(ctx context.Context) ([]DataflowJob, error) {
 			}
 
 			// create dataflow job
-			job := DataflowJob{
+			job := Job{
 				Id:        j.Id,
 				Name:      j.Name,
 				Type:      j.Type,
 				StartTime: startTime,
-				Status: DataflowJobStatus{
+				Status: JobStatus{
 					Status:    j.CurrentState,
 					UpdatedAt: statusTime,
 				},
@@ -86,18 +86,14 @@ func (s *dataflowService) ListJobs(ctx context.Context) ([]DataflowJob, error) {
 	return jobs, nil
 }
 
-func (s *dataflowService) GetErrorLogs(ctx context.Context, jobId string) ([]DataflowLogMessage, error) {
+func (s *dataflowService) GetLogs(ctx context.Context, jobId string, minLevel MessageLevel) ([]LogMessage, error) {
 	jobService := dataflow.NewProjectsLocationsJobsMessagesService(s.service)
 	req := jobService.List(s.project, s.location, jobId)
+	req.MinimumImportance(string(minLevel))
 
-	entries := []DataflowLogMessage{}
+	entries := []LogMessage{}
 	err := req.Pages(ctx, func(res *dataflow.ListJobMessagesResponse) error {
 		for _, message := range res.JobMessages {
-			// skip any entry that is not an error
-			if message.MessageImportance != "JOB_MESSAGE_ERROR" {
-				continue
-			}
-
 			// parse timestamps
 			t, err := util.ParseTimestamp(message.Time)
 			if err != nil {
@@ -105,9 +101,9 @@ func (s *dataflowService) GetErrorLogs(ctx context.Context, jobId string) ([]Dat
 			}
 
 			// add entry
-			e := DataflowLogMessage{
+			e := LogMessage{
 				Text:  message.MessageText,
-				Level: message.MessageImportance,
+				Level: MessageLevelFromString(string(message.MessageImportance)),
 				Time:  t,
 			}
 

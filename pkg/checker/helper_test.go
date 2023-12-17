@@ -10,10 +10,10 @@ import (
 
 type DataflowServiceMock struct{}
 
-func (*DataflowServiceMock) ListJobs(ctx context.Context) ([]dataflow.DataflowJob, error) {
+func (*DataflowServiceMock) ListJobs(ctx context.Context) ([]dataflow.Job, error) {
 	return nil, nil
 }
 
-func (*DataflowServiceMock) GetLogs(ctx context.Context, jobId string) ([]dataflow.DataflowLogMessage, error) {
+func (*DataflowServiceMock) GetLogs(ctx context.Context, jobId string) ([]dataflow.LogMessage, error) {
 	return nil, nil
 }

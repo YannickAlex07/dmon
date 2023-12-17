@@ -5,7 +5,7 @@ import "time"
 // Status
 
 // The Status of a Dataflow Job
-type DataflowJobStatus struct {
+type JobStatus struct {
 	// The raw status string of the job. You can check this manually
 	// or use the provided `IsXXX()`-methods on this struct.
 	Status string
@@ -15,18 +15,18 @@ type DataflowJobStatus struct {
 }
 
 // Check if the job has failed according to its status.
-func (js DataflowJobStatus) IsFailed() bool {
+func (js JobStatus) IsFailed() bool {
 	return js.Status == "JOB_STATE_FAILED"
 }
 
 // Check if the job is running according to its status.
-func (js DataflowJobStatus) IsRunning() bool {
+func (js JobStatus) IsRunning() bool {
 	return js.Status == "JOB_STATE_RUNNING"
 }
 
 // Job
 
-type DataflowJob struct {
+type Job struct {
 	Id   string
 	Name string
 
@@ -39,21 +39,21 @@ type DataflowJob struct {
 
 	// The current status of the Dataflow job, containing the state it is in
 	// as well as when it was last updated.
-	Status DataflowJobStatus
+	Status JobStatus
 }
 
 // Check if the job is a streaming job.
-func (j DataflowJob) IsStreaming() bool {
+func (j Job) IsStreaming() bool {
 	return j.Type == "JOB_TYPE_STREAMING"
 }
 
 // Check if the job is a streaming job.
-func (j DataflowJob) IsBatch() bool {
+func (j Job) IsBatch() bool {
 	return j.Type == "JOB_TYPE_BATCH"
 }
 
 // Check the current runtime of the job. This is calculating by taking the time
 // since the start time provided by the Dataflow backend.
-func (j DataflowJob) Runtime() time.Duration {
+func (j Job) Runtime() time.Duration {
 	return time.Since(j.StartTime)
 }

@@ -19,7 +19,7 @@ type DataflowChecker struct {
 	// A custom filter that can be used to filter out specific jobs to check.
 	// Don't use that field to filter for failed jobs or jobs that run for too long,
 	// this will already be done by the Checker itself.
-	JobFilter func(dataflow.DataflowJob) bool
+	JobFilter func(dataflow.Job) bool
 
 	// Configure when a job is marked as timed out.
 	Timeout time.Duration
@@ -46,7 +46,7 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]siren.No
 				// request error logs
 				logs := []string{}
 
-				l, err := c.Service.GetErrorLogs(ctx, job.Id)
+				l, err := c.Service.GetLogs(ctx, job.Id, dataflow.LEVEL_ERROR)
 				if err != nil {
 					// log error event
 					logs = append(logs, "Failed to fetch logs...")
@@ -86,7 +86,7 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]siren.No
 	return notifications, nil
 }
 
-func (c DataflowChecker) links(job dataflow.DataflowJob) map[string]*url.URL {
+func (c DataflowChecker) links(job dataflow.Job) map[string]*url.URL {
 	links := map[string]*url.URL{}
 
 	// the url to the Dataflow UI
