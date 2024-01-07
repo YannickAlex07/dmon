@@ -2,11 +2,12 @@ package checker
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"time"
 
 	dataflow "github.com/yannickalex07/dmon/internal/gcp/dataflow"
-	siren "github.com/yannickalex07/dmon/pkg"
+	keiho "github.com/yannickalex07/dmon/pkg"
 )
 
 // Checker
@@ -25,14 +26,14 @@ type DataflowChecker struct {
 	Timeout time.Duration
 }
 
-func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]siren.Notification, error) {
+func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]keiho.Notification, error) {
 	// list all jobs
 	jobs, err := c.Service.ListJobs(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	notifications := []siren.Notification{}
+	notifications := []keiho.Notification{}
 	for _, job := range jobs {
 		// filter down jobs by the provided filter
 		if !c.JobFilter(job) {
@@ -57,9 +58,9 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]siren.No
 				}
 
 				// create the notification
-				n := siren.Notification{
+				n := keiho.Notification{
 					Title:       "❌ Dataflow Job Failed",
-					Description: "",
+					Description: fmt.Sprintf("The job `%s` with id `%s` failed at *%s*!", job.Name, job.Id, job.Status.UpdatedAt.Format(time.RFC1123)),
 					Logs:        logs,
 					Links:       c.links(job),
 				}
@@ -71,9 +72,9 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]siren.No
 		// check runtime of running batch jobs
 		if !job.IsStreaming() && job.Status.IsRunning() {
 			if job.Runtime() >= c.Timeout {
-				n := siren.Notification{
+				n := keiho.Notification{
 					Title:       "⏱️ Dataflow Job Running For Too Long",
-					Description: "",
+					Description: fmt.Sprintf("The job `%s` with id `%s` crossed the maximum timeout limit with a runtime of *%s*.", job.Name, job.Id, job.Runtime().Round(time.Second)),
 					Logs:        []string{},
 					Links:       c.links(job),
 				}
@@ -90,7 +91,7 @@ func (c DataflowChecker) links(job dataflow.Job) map[string]*url.URL {
 	links := map[string]*url.URL{}
 
 	// the url to the Dataflow UI
-	u, err := url.Parse("")
+	u, err := url.Parse(fmt.Sprintf("https://console.cloud.google.com/dataflow/jobs/%s/%s?project=%s&authuser=1&hl=en", job.Location, job.Id, job.Project))
 	if err == nil {
 		links["Open In Dataflow"] = u
 	}

@@ -28,6 +28,8 @@ func TestDataflowServiceListJobs(t *testing.T) {
 			Id:        "1",
 			Name:      "my-job-1",
 			Type:      "JOB_TYPE_BATCH",
+			Project:   "project",
+			Location:  "location",
 			StartTime: startTime,
 			Status: dataflow.JobStatus{
 				Status:    "JOB_STATE_RUNNING",
@@ -38,6 +40,8 @@ func TestDataflowServiceListJobs(t *testing.T) {
 			Id:        "2",
 			Name:      "my-job-2",
 			Type:      "JOB_TYPE_STREAMING",
+			Project:   "project",
+			Location:  "location",
 			StartTime: startTime,
 			Status: dataflow.JobStatus{
 				Status:    "JOB_STATE_DONE",

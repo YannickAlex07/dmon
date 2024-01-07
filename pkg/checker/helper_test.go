@@ -2,18 +2,27 @@ package checker_test
 
 import (
 	"context"
+	"errors"
 
 	dataflow "github.com/yannickalex07/dmon/internal/gcp/dataflow"
 )
 
 // DataflowServiceMock
 
-type DataflowServiceMock struct{}
-
-func (*DataflowServiceMock) ListJobs(ctx context.Context) ([]dataflow.Job, error) {
-	return nil, nil
+type DataflowServiceMock struct {
+	Jobs []dataflow.Job
+	Logs map[string][]dataflow.LogMessage
 }
 
-func (*DataflowServiceMock) GetLogs(ctx context.Context, jobId string) ([]dataflow.LogMessage, error) {
-	return nil, nil
+func (s *DataflowServiceMock) ListJobs(ctx context.Context) ([]dataflow.Job, error) {
+	return s.Jobs, nil
+}
+
+func (s *DataflowServiceMock) GetLogs(ctx context.Context, jobId string, minLevel dataflow.MessageLevel) ([]dataflow.LogMessage, error) {
+	logs, ok := s.Logs[jobId]
+	if !ok {
+		return nil, errors.New("job not found")
+	}
+
+	return logs, nil
 }

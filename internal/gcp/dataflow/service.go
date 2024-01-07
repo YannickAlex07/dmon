@@ -65,6 +65,8 @@ func (s *dataflowService) ListJobs(ctx context.Context) ([]Job, error) {
 			job := Job{
 				Id:        j.Id,
 				Name:      j.Name,
+				Project:   s.project,
+				Location:  s.location,
 				Type:      j.Type,
 				StartTime: startTime,
 				Status: JobStatus{

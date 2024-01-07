@@ -30,6 +30,9 @@ type Job struct {
 	Id   string
 	Name string
 
+	Project  string
+	Location string
+
 	// The raw type of the job. You can check this field manually or use
 	// the provided `IsStreaming()` or `IsBatch()` method on this struct to check it.
 	Type string
