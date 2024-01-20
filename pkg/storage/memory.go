@@ -35,11 +35,16 @@ func (m MemoryStorage) Store(ctx context.Context, key string, value interface{},
 }
 
 func (m MemoryStorage) Get(ctx context.Context, key string) (interface{}, error) {
-	item := m.cache.Get(key)
+	hasKey := m.cache.Has(key)
+
+	if !hasKey {
+		return nil, nil
+	}
+
+	item := m.cache.Get(key).Value()
 	return item, nil
 }
 
 func (m MemoryStorage) Exists(ctx context.Context, key string) (bool, error) {
-	item := m.cache.Get(key)
-	return item != nil, nil
+	return m.cache.Has(key), nil
 }

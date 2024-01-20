@@ -29,5 +29,9 @@ func main() {
 	monitor := monitor.SingleMonitor{}
 
 	// start monitor
-	monitor.Start(ctx, []keiho.Checker{dataflowChecker}, []keiho.Handler{&logHandler}, memoryStorage)
+	for {
+		monitor.Start(ctx, []keiho.Checker{dataflowChecker}, []keiho.Handler{&logHandler}, memoryStorage)
+
+		time.Sleep(time.Second * 10)
+	}
 }

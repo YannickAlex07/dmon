@@ -3,7 +3,7 @@ module github.com/yannickalex07/dmon
 go 1.21
 
 require (
-	github.com/jellydator/ttlcache/v3 v3.0.1
+	github.com/jellydator/ttlcache/v3 v3.1.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/slack-go/slack v0.12.1
 	google.golang.org/api v0.114.0

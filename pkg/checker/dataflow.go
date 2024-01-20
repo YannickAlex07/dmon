@@ -3,6 +3,7 @@ package checker
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/url"
 	"time"
 
@@ -28,36 +29,45 @@ type DataflowChecker struct {
 
 func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]keiho.Notification, error) {
 	// list all jobs
+	log.Println("listing jobs")
 	jobs, err := c.Service.ListJobs(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	log.Printf("found %d jobs", len(jobs))
 	notifications := []keiho.Notification{}
 	for _, job := range jobs {
 		// filter down jobs by the provided filter
-		if !c.JobFilter(job) {
+		if c.JobFilter != nil && !c.JobFilter(job) {
 			continue
 		}
 
 		// check all updated jobs
 		if job.Status.UpdatedAt.After(since) {
+			log.Printf("checking udpated job: %s", job.Id)
 			// check if the job failed
 			if job.Status.IsFailed() {
+				log.Printf("job failed: %s", job.Id)
+
 				// request error logs
 				logs := []string{}
 
+				log.Println("fetching logs")
 				l, err := c.Service.GetLogs(ctx, job.Id, dataflow.LEVEL_ERROR)
 				if err != nil {
 					// log error event
 					logs = append(logs, "Failed to fetch logs...")
+					log.Printf("failed to fetch logs: %v", err)
 				} else {
+					log.Println("fetched logs")
 					for _, m := range l {
 						logs = append(logs, m.Text)
 					}
 				}
 
 				// create the notification
+				log.Println("creating notification")
 				n := keiho.Notification{
 					Title:       "❌ Dataflow Job Failed",
 					Description: fmt.Sprintf("The job `%s` with id `%s` failed at *%s*!", job.Name, job.Id, job.Status.UpdatedAt.Format(time.RFC1123)),
@@ -65,13 +75,18 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]keiho.No
 					Links:       c.links(job),
 				}
 
+				log.Printf("created notification: %v", n)
+
 				notifications = append(notifications, n)
 			}
 		}
 
 		// check runtime of running batch jobs
+		log.Printf("checking runtime of job: %s", job.Id)
 		if !job.IsStreaming() && job.Status.IsRunning() {
+			log.Printf("job is running: %s", job.Id)
 			if job.Runtime() >= c.Timeout {
+				log.Printf("job is running for too long: %s", job.Id)
 				n := keiho.Notification{
 					Title:       "⏱️ Dataflow Job Running For Too Long",
 					Description: fmt.Sprintf("The job `%s` with id `%s` crossed the maximum timeout limit with a runtime of *%s*.", job.Name, job.Id, job.Runtime().Round(time.Second)),
@@ -79,6 +94,7 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]keiho.No
 					Links:       c.links(job),
 				}
 
+				log.Printf("created notification: %v", n)
 				notifications = append(notifications, n)
 			}
 		}
