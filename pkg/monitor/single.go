@@ -74,7 +74,6 @@ func (SingleMonitor) Start(ctx context.Context, checkers []keiho.Checker, handle
 				// TODO: log error
 			}
 		}
-
 	}
 
 	// store the execution time in storage

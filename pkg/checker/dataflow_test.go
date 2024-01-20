@@ -133,18 +133,86 @@ func TestDataflowChecker(t *testing.T) {
 	assert.Equal(t, expectedNotifications, notifications)
 }
 
-// func TestDataflowCheckerWithJobFilter(t *testing.T) {
-// 	// Arrange
-// 	_ = checker.DataflowChecker{
-// 		Project:  "my-project",
-// 		Location: "europe-west1",
-// 		JobFilter: func(job checker.DataflowJob) bool {
-// 			return job.Name == "job-1"
-// 		},
-// 	}
+func TestDataflowCheckerWithJobFilter(t *testing.T) {
+	// Arrange
+	ctx := context.Background()
+	since := time.Now().UTC().Add(-time.Hour * 1)
 
-// 	// Act
+	service := &DataflowServiceMock{
+		Jobs: []dataflow.Job{
+			// This job should trigger an alert
+			// as it failed after our last runtime (since)
+			{
+				Id:        "a",
+				Name:      "job-1",
+				Project:   "project",
+				Location:  "location",
+				StartTime: since.Add(-time.Hour * 1),
+				Status: dataflow.JobStatus{
+					Status:    "JOB_STATE_FAILED",
+					UpdatedAt: since.Add(time.Minute * 1),
+				},
+			},
+			// This job should **not** trigger an alert
+			// as it should be ignored by our job filter
+			{
+				Id:        "b",
+				Name:      "job-2",
+				Project:   "project",
+				Location:  "location",
+				StartTime: since.Add(-time.Hour * 1),
+				Status: dataflow.JobStatus{
+					Status:    "JOB_STATE_FAILED",
+					UpdatedAt: since.Add(time.Minute * 1),
+				},
+			},
+		},
+		Logs: map[string][]dataflow.LogMessage{
+			"a": {
+				{
+					Text:  "This is a log message",
+					Level: dataflow.LEVEL_ERROR,
+					Time:  time.Now(),
+				},
+			},
+		},
+	}
 
-// 	// Assert
-// 	t.Fail()
-// }
+	uiUrl, err := url.Parse("https://console.cloud.google.com/dataflow/jobs/location/a?project=project&authuser=1&hl=en")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedNotifications := []keiho.Notification{
+		// This is the notification for job id "c"
+		{
+			Title:       "❌ Dataflow Job Failed",
+			Description: fmt.Sprintf("The job `job-1` with id `a` failed at *%s*!", since.Add(time.Minute*1).Format(time.RFC1123)),
+			Logs: []string{
+				"This is a log message",
+			},
+			Links: map[string]*url.URL{
+				"Open In Dataflow": uiUrl,
+			},
+		},
+	}
+
+	filter := func(job dataflow.Job) bool {
+		// filter every job that is named "job-2"
+		return job.Name != "job-2"
+	}
+
+	checker := checker.DataflowChecker{
+		Service:   service,
+		JobFilter: filter,
+		Timeout:   time.Hour * 3,
+	}
+
+	// Act
+	notifications, err := checker.Check(ctx, since)
+
+	// Assert
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedNotifications, notifications)
+}
