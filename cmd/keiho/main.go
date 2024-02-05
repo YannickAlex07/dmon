@@ -4,11 +4,10 @@ import (
 	"context"
 	"time"
 
-	dataflow "github.com/yannickalex07/dmon/internal/gcp/dataflow"
 	keiho "github.com/yannickalex07/dmon/pkg"
 	checker "github.com/yannickalex07/dmon/pkg/checker"
+	dataflow "github.com/yannickalex07/dmon/pkg/gcp/dataflow"
 	handler "github.com/yannickalex07/dmon/pkg/handler"
-	monitor "github.com/yannickalex07/dmon/pkg/monitor"
 	storage "github.com/yannickalex07/dmon/pkg/storage"
 )
 
@@ -26,11 +25,15 @@ func main() {
 	dataflowChecker := checker.DataflowChecker{Service: dataflowService, Timeout: time.Hour * 1}
 
 	// build monitor
-	monitor := monitor.SingleMonitor{}
+	monitor := keiho.Monitor{
+		Storage:  memoryStorage,
+		Handlers: []keiho.Handler{&logHandler},
+		Checkers: []keiho.Checker{&dataflowChecker},
+	}
 
 	// start monitor
 	for {
-		monitor.Start(ctx, []keiho.Checker{dataflowChecker}, []keiho.Handler{&logHandler}, memoryStorage)
+		monitor.Start(ctx)
 
 		time.Sleep(time.Second * 10)
 	}

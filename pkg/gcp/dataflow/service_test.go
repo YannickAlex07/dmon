@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yannickalex07/dmon/internal/gcp/dataflow"
+	"github.com/yannickalex07/dmon/pkg/gcp/dataflow"
 	gDataflow "google.golang.org/api/dataflow/v1b3"
 	"google.golang.org/api/option"
 )

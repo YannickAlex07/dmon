@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yannickalex07/dmon/internal/gcp/dataflow"
 	keiho "github.com/yannickalex07/dmon/pkg"
 	"github.com/yannickalex07/dmon/pkg/checker"
+	"github.com/yannickalex07/dmon/pkg/gcp/dataflow"
 )
 
 func TestDataflowChecker(t *testing.T) {

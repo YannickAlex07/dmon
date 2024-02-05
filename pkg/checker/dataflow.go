@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"time"
 
-	dataflow "github.com/yannickalex07/dmon/internal/gcp/dataflow"
 	keiho "github.com/yannickalex07/dmon/pkg"
+	dataflow "github.com/yannickalex07/dmon/pkg/gcp/dataflow"
 )
 
 // Checker
