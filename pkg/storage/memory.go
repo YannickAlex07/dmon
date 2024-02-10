@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/jellydator/ttlcache/v3"
@@ -38,7 +39,7 @@ func (m MemoryStorage) Get(ctx context.Context, key string) (interface{}, error)
 	hasKey := m.cache.Has(key)
 
 	if !hasKey {
-		return nil, nil
+		return nil, errors.New("key not found")
 	}
 
 	item := m.cache.Get(key).Value()
