@@ -32,9 +32,5 @@ func main() {
 	}
 
 	// start monitor
-	for {
-		monitor.Start(ctx)
-
-		time.Sleep(time.Second * 10)
-	}
+	monitor.StartWithSchedule(ctx, "* * * * *")
 }

@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-co-op/gocron"
 	"github.com/mitchellh/hashstructure"
 )
 
@@ -19,7 +20,13 @@ type Monitor struct {
 	Storage  Storage
 }
 
-func (m *Monitor) StartWithSchedule(ctx context.Context, schedule string) error { return nil }
+func (m *Monitor) StartWithSchedule(ctx context.Context, schedule string) error {
+	scheduler := gocron.NewScheduler(time.UTC)
+	scheduler.Every(schedule).Do(m.Start(ctx))
+	scheduler.StartBlocking()
+
+	return nil
+}
 
 func (m *Monitor) Start(ctx context.Context) error {
 	now := time.Now().UTC()
