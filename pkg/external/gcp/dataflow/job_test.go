@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yannickalex07/dmon/pkg/gcp/dataflow"
+	"github.com/yannickalex07/dmon/pkg/external/gcp/dataflow"
 )
 
 // JOB STATUS

@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	keiho "github.com/yannickalex07/dmon/pkg"
 	"github.com/yannickalex07/dmon/pkg/checker"
-	"github.com/yannickalex07/dmon/pkg/gcp/dataflow"
+	"github.com/yannickalex07/dmon/pkg/external/gcp/dataflow"
 )
 
 func TestDataflowChecker(t *testing.T) {

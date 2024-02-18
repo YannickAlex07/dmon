@@ -7,7 +7,7 @@ import (
 
 	keiho "github.com/yannickalex07/dmon/pkg"
 	checker "github.com/yannickalex07/dmon/pkg/checker"
-	dataflow "github.com/yannickalex07/dmon/pkg/gcp/dataflow"
+	dataflow "github.com/yannickalex07/dmon/pkg/external/gcp/dataflow"
 	handler "github.com/yannickalex07/dmon/pkg/handler"
 	storage "github.com/yannickalex07/dmon/pkg/storage"
 )
