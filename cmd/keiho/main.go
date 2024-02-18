@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	keiho "github.com/yannickalex07/dmon/pkg"
@@ -15,14 +16,16 @@ func main() {
 	ctx := context.Background()
 
 	// build storage
-	memoryStorage := storage.NewMemoryStorage(time.Minute * 5)
+	memoryStorage := storage.NewMemoryStorage(time.Hour * 24)
 
 	// build handler
 	logHandler := handler.LogHandler{}
 
 	// build checker
-	dataflowService := dataflow.NewDataflowService(ctx, "trv-master-data-pipeline-edge", "europe-west4", nil)
-	dataflowChecker := checker.DataflowChecker{Service: dataflowService, Timeout: time.Hour * 1}
+	dataflowService := dataflow.NewDataflowService(ctx, "trv-fna-pipeline-edge", "europe-west4", nil)
+	dataflowChecker := checker.DataflowChecker{Service: dataflowService, Timeout: time.Minute * 2, JobFilter: func(j dataflow.Job) bool {
+		return strings.HasPrefix(j.Name, "yannick-")
+	}}
 
 	// build monitor
 	monitor := keiho.Monitor{

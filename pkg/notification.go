@@ -4,6 +4,9 @@ import "net/url"
 
 // A notification that needs to be handled by a handler
 type Notification struct {
+	// The key under which the notification will be stored
+	Key string
+
 	// The title of the notification
 	Title string
 

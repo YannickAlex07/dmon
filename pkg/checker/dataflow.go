@@ -11,6 +11,13 @@ import (
 	dataflow "github.com/yannickalex07/dmon/pkg/gcp/dataflow"
 )
 
+type notificationType string
+
+const (
+	errNotification     = "ERROR"
+	timeoutNotification = "TIMEOUT"
+)
+
 // Checker
 
 // A checker for Dataflow.
@@ -69,25 +76,26 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]keiho.No
 				// create the notification
 				log.Println("creating notification")
 				n := keiho.Notification{
+					Key:         c.createNotificationKey(errNotification, job.Id, job.StartTime),
 					Title:       "❌ Dataflow Job Failed",
 					Description: fmt.Sprintf("The job `%s` with id `%s` failed at *%s*!", job.Name, job.Id, job.Status.UpdatedAt.Format(time.RFC1123)),
 					Logs:        logs,
 					Links:       c.links(job),
 				}
 
-				log.Printf("created notification: %v", n)
+				log.Printf("created notification: Title(%s) && Description(%s)", n.Title, n.Description)
 
 				notifications = append(notifications, n)
 			}
 		}
 
 		// check runtime of running batch jobs
-		log.Printf("checking runtime of job: %s", job.Id)
 		if !job.IsStreaming() && job.Status.IsRunning() {
-			log.Printf("job is running: %s", job.Id)
+			log.Printf("checking runtime of job: %s", job.Id)
 			if job.Runtime() >= c.Timeout {
 				log.Printf("job is running for too long: %s", job.Id)
 				n := keiho.Notification{
+					Key:         c.createNotificationKey(timeoutNotification, job.Id, job.StartTime),
 					Title:       "⏱️ Dataflow Job Running For Too Long",
 					Description: fmt.Sprintf("The job `%s` with id `%s` crossed the maximum timeout limit with a runtime of *%s*.", job.Name, job.Id, job.Runtime().Round(time.Second)),
 					Logs:        []string{},
@@ -103,7 +111,7 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]keiho.No
 	return notifications, nil
 }
 
-func (c DataflowChecker) links(job dataflow.Job) map[string]*url.URL {
+func (c *DataflowChecker) links(job dataflow.Job) map[string]*url.URL {
 	links := map[string]*url.URL{}
 
 	// the url to the Dataflow UI
@@ -113,4 +121,8 @@ func (c DataflowChecker) links(job dataflow.Job) map[string]*url.URL {
 	}
 
 	return links
+}
+
+func (c *DataflowChecker) createNotificationKey(nType notificationType, jobId string, startTime time.Time) string {
+	return fmt.Sprintf("DATAFLOW-%s-%s-%s", nType, jobId, startTime.Format(time.RFC3339))
 }

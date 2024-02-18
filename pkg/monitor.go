@@ -3,13 +3,11 @@ package keiho
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/go-co-op/gocron"
-	"github.com/mitchellh/hashstructure"
 )
 
 const LAST_RUNTIME_KEY = "KEIHO_LAST_RUNTIME"
@@ -21,8 +19,13 @@ type Monitor struct {
 }
 
 func (m *Monitor) StartWithSchedule(ctx context.Context, schedule string) error {
+	// monitor func
 	scheduler := gocron.NewScheduler(time.UTC)
-	scheduler.Every(schedule).Do(m.Start(ctx))
+
+	scheduler.Cron(schedule).Do(func() {
+		m.Start(ctx)
+	})
+
 	scheduler.StartBlocking()
 
 	return nil
@@ -34,7 +37,7 @@ func (m *Monitor) Start(ctx context.Context) error {
 	// fetch last runtime from storage
 	lastRuntimeTime, err := m.fetchLastRuntime(ctx)
 	if err != nil {
-		// TODO: log error here and inform user we assume now
+		// TODO: log error here and inform user we assume earliest time
 		lastRuntimeTime = now
 	}
 
@@ -132,19 +135,9 @@ func (m *Monitor) runCheckers(ctx context.Context, since time.Time) ([]Notificat
 
 func (m *Monitor) runHandlers(ctx context.Context, notifications []Notification) error {
 	for _, notification := range notifications {
-		// 1. hash the notification using -> https://pkg.go.dev/github.com/mitchellh/hashstructure
-		log.Println("hashing notification")
-		hash, err := hashstructure.Hash(notification, nil)
-		if err != nil {
-			// TODO: log error
-			log.Printf("failed to hash notification: %v", err)
-		}
-
-		log.Printf("hashed notification: %d", hash)
-
-		// 2. check if the hash exists in the storage
-		log.Println("checking if hash exists in storage")
-		exists, err := m.Storage.Exists(ctx, fmt.Sprintf("%d", hash))
+		// check if the hash exists in the storage
+		log.Printf("checking if notification exists in storage - key: %s", notification.Key)
+		exists, err := m.Storage.Exists(ctx, notification.Key)
 		if err != nil {
 			// TODO: log error
 			log.Printf("failed to check if hash exists in storage: %v", err)
@@ -152,12 +145,12 @@ func (m *Monitor) runHandlers(ctx context.Context, notifications []Notification)
 			exists = false
 		}
 
-		log.Printf("hash exists in storage: %v", exists)
+		log.Printf("notification exists in storage: %v", exists)
 
 		if !exists {
 			var wg sync.WaitGroup
 
-			log.Printf("hash does not exist in storage, sending notification to handlers")
+			log.Printf("notification does not exist in storage, sending notification to handlers")
 			for _, handler := range m.Handlers {
 				wg.Add(1)
 
@@ -173,7 +166,7 @@ func (m *Monitor) runHandlers(ctx context.Context, notifications []Notification)
 
 			// store notification in storage
 			log.Println("storing notification in storage")
-			err = m.Storage.Store(ctx, fmt.Sprintf("%d", hash), notification, true)
+			err = m.Storage.Store(ctx, notification.Key, notification, true)
 			if err != nil {
 				// TODO: log error
 				log.Printf("failed to store notification in storage: %v", err)
