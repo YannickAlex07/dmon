@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/yannickalex07/dmon/pkg/util"
 	dataflow "google.golang.org/api/dataflow/v1b3"
@@ -102,14 +103,16 @@ func (s *dataflowService) GetLogs(ctx context.Context, jobId string, minLevel Me
 				return fmt.Errorf("failed to parse message time with: %w", err)
 			}
 
-			// add entry
-			e := LogMessage{
-				Text:  message.MessageText,
-				Level: MessageLevelFromString(string(message.MessageImportance)),
-				Time:  t,
-			}
+			for _, m := range strings.Split(message.MessageText, "\n") {
+				// add entry
+				e := LogMessage{
+					Text:  m,
+					Level: MessageLevelFromString(string(message.MessageImportance)),
+					Time:  t,
+				}
 
-			entries = append(entries, e)
+				entries = append(entries, e)
+			}
 		}
 
 		return nil

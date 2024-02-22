@@ -8,6 +8,7 @@ import (
 	keiho "github.com/yannickalex07/dmon/pkg"
 	checker "github.com/yannickalex07/dmon/pkg/checker"
 	dataflow "github.com/yannickalex07/dmon/pkg/external/gcp/dataflow"
+	"github.com/yannickalex07/dmon/pkg/external/slack"
 	handler "github.com/yannickalex07/dmon/pkg/handler"
 	storage "github.com/yannickalex07/dmon/pkg/storage"
 )
@@ -20,6 +21,10 @@ func main() {
 
 	// build handler
 	logHandler := handler.LogHandler{}
+	slackHandler := handler.SlackHandler{
+		Service: slack.NewSlackService("..."),
+		Channel: "collection-fna-pipeline-edge-alarms",
+	}
 
 	// build checker
 	dataflowService := dataflow.NewDataflowService(ctx, "trv-fna-pipeline-edge", "europe-west4", nil)
@@ -30,7 +35,7 @@ func main() {
 	// build monitor
 	monitor := keiho.Monitor{
 		Storage:  memoryStorage,
-		Handlers: []keiho.Handler{&logHandler},
+		Handlers: []keiho.Handler{&logHandler, &slackHandler},
 		Checkers: []keiho.Checker{&dataflowChecker},
 	}
 
