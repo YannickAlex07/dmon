@@ -89,7 +89,7 @@ func TestSlackHandlerWithSingleLogMessage(t *testing.T) {
 		"\t", "",
 		"\n", "",
 		" ", "",
-		"LOGMESSAGE", "Last Log Messages: ```Test```",
+		"LOGMESSAGE", "Last Log Messages: ```Test```", // hack because we can't use backticks in multiline string
 	)
 
 	service := SlackServiceMock{}
@@ -170,7 +170,7 @@ func TestSlackHandlerWithMultipleLogMessages(t *testing.T) {
 		"\t", "",
 		"\n", "",
 		" ", "",
-		"LOGMESSAGE", "Last Log Messages: ```2\\n3\\n4\\n5\\n6```",
+		"LOGMESSAGE", "Last Log Messages: ```2\\n3\\n4\\n5\\n6```", // hack because we can't use backticks in multiline string
 	)
 
 	service := SlackServiceMock{}
