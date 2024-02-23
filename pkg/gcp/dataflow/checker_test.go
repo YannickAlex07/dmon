@@ -1,4 +1,4 @@
-package checker_test
+package dataflow_test
 
 import (
 	"context"
@@ -9,8 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	keiho "github.com/yannickalex07/dmon/pkg"
-	"github.com/yannickalex07/dmon/pkg/checker"
-	"github.com/yannickalex07/dmon/pkg/external/gcp/dataflow"
+	dataflow "github.com/yannickalex07/dmon/pkg/gcp/dataflow"
 )
 
 func TestDataflowChecker(t *testing.T) {
@@ -118,7 +117,7 @@ func TestDataflowChecker(t *testing.T) {
 		},
 	}
 
-	checker := checker.DataflowChecker{
+	checker := dataflow.DataflowChecker{
 		Service:   service,
 		JobFilter: func(job dataflow.Job) bool { return true },
 		Timeout:   time.Hour * 3,
@@ -202,7 +201,7 @@ func TestDataflowCheckerWithJobFilter(t *testing.T) {
 		return job.Name != "job-2"
 	}
 
-	checker := checker.DataflowChecker{
+	checker := dataflow.DataflowChecker{
 		Service:   service,
 		JobFilter: filter,
 		Timeout:   time.Hour * 3,

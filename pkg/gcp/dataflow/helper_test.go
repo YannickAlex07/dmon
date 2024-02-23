@@ -1,10 +1,10 @@
-package checker_test
+package dataflow_test
 
 import (
 	"context"
 	"errors"
 
-	dataflow "github.com/yannickalex07/dmon/pkg/external/gcp/dataflow"
+	dataflow "github.com/yannickalex07/dmon/pkg/gcp/dataflow"
 )
 
 // DataflowServiceMock

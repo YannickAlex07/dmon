@@ -1,4 +1,4 @@
-package storage_test
+package local_test
 
 import (
 	"context"
@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yannickalex07/dmon/pkg/storage"
+	"github.com/yannickalex07/dmon/pkg/local"
 )
 
 func TestMemoryStoreStoringWithoutExpire(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
-	storage := storage.NewMemoryStorage(10 * time.Second)
+	storage := local.NewMemoryStorage(10 * time.Second)
 
 	// Act
 	err := storage.Store(ctx, "key", "value", false)
@@ -37,7 +37,7 @@ func TestMemoryStoreStoringWithoutExpire(t *testing.T) {
 func TestMemoryStoreStoringWithExpire(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
-	storage := storage.NewMemoryStorage(1 * time.Second)
+	storage := local.NewMemoryStorage(1 * time.Second)
 
 	// Act
 	err := storage.Store(ctx, "key", "value", true)
@@ -59,7 +59,7 @@ func TestMemoryStoreStoringWithExpire(t *testing.T) {
 func TestMemoryStoreExistsWithExistingKey(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
-	storage := storage.NewMemoryStorage(1 * time.Second)
+	storage := local.NewMemoryStorage(1 * time.Second)
 
 	err := storage.Store(ctx, "key", "value", false)
 	if err != nil {
@@ -79,7 +79,7 @@ func TestMemoryStoreExistsWithExistingKey(t *testing.T) {
 func TestMemoryStoreExistsWithNonExistingKey(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
-	storage := storage.NewMemoryStorage(1 * time.Second)
+	storage := local.NewMemoryStorage(1 * time.Second)
 
 	// Act
 	exists, err := storage.Exists(ctx, "key")
@@ -94,7 +94,7 @@ func TestMemoryStoreExistsWithNonExistingKey(t *testing.T) {
 func TestMemoryStoreGetWithExistingKey(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
-	storage := storage.NewMemoryStorage(1 * time.Second)
+	storage := local.NewMemoryStorage(1 * time.Second)
 
 	err := storage.Store(ctx, "key", "value", false)
 	if err != nil {
@@ -119,7 +119,7 @@ func TestMemoryStoreGetWithExistingKey(t *testing.T) {
 func TestMemoryStoreGetWithNonExistingKey(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
-	storage := storage.NewMemoryStorage(1 * time.Second)
+	storage := local.NewMemoryStorage(1 * time.Second)
 
 	// Act
 	value, err := storage.Get(ctx, "key")

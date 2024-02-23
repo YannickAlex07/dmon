@@ -6,29 +6,27 @@ import (
 	"time"
 
 	keiho "github.com/yannickalex07/dmon/pkg"
-	checker "github.com/yannickalex07/dmon/pkg/checker"
-	dataflow "github.com/yannickalex07/dmon/pkg/external/gcp/dataflow"
-	"github.com/yannickalex07/dmon/pkg/external/slack"
-	handler "github.com/yannickalex07/dmon/pkg/handler"
-	storage "github.com/yannickalex07/dmon/pkg/storage"
+	"github.com/yannickalex07/dmon/pkg/gcp/dataflow"
+	"github.com/yannickalex07/dmon/pkg/local"
+	"github.com/yannickalex07/dmon/pkg/slack"
 )
 
 func main() {
 	ctx := context.Background()
 
 	// build storage
-	memoryStorage := storage.NewMemoryStorage(time.Hour * 24)
+	memoryStorage := local.NewMemoryStorage(time.Hour * 24)
 
 	// build handler
-	logHandler := handler.LogHandler{}
-	slackHandler := handler.SlackHandler{
+	logHandler := local.LogHandler{}
+	slackHandler := slack.SlackHandler{
 		Service: slack.NewSlackService("..."),
 		Channel: "collection-fna-pipeline-edge-alarms",
 	}
 
 	// build checker
 	dataflowService := dataflow.NewDataflowService(ctx, "trv-fna-pipeline-edge", "europe-west4", nil)
-	dataflowChecker := checker.DataflowChecker{Service: dataflowService, Timeout: time.Minute * 2, JobFilter: func(j dataflow.Job) bool {
+	dataflowChecker := dataflow.DataflowChecker{Service: dataflowService, Timeout: time.Minute * 2, JobFilter: func(j dataflow.Job) bool {
 		return strings.HasPrefix(j.Name, "yannick-")
 	}}
 

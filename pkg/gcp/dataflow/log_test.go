@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yannickalex07/dmon/pkg/external/gcp/dataflow"
+	"github.com/yannickalex07/dmon/pkg/gcp/dataflow"
 )
 
 func TestMessageLevelFromString(t *testing.T) {

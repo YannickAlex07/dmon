@@ -1,4 +1,4 @@
-package checker
+package dataflow
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"time"
 
 	keiho "github.com/yannickalex07/dmon/pkg"
-	dataflow "github.com/yannickalex07/dmon/pkg/external/gcp/dataflow"
 )
 
 type notificationType string
@@ -23,12 +22,12 @@ const (
 // A checker for Dataflow.
 // Will check for failed jobs as well as batch jobs that run for too long.
 type DataflowChecker struct {
-	Service dataflow.DataflowService
+	Service DataflowService
 
 	// A custom filter that can be used to filter out specific jobs to check.
 	// Don't use that field to filter for failed jobs or jobs that run for too long,
 	// this will already be done by the Checker itself.
-	JobFilter func(dataflow.Job) bool
+	JobFilter func(Job) bool
 
 	// Configure when a job is marked as timed out.
 	Timeout time.Duration
@@ -61,7 +60,7 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]keiho.No
 				logs := []string{}
 
 				log.Println("fetching logs")
-				l, err := c.Service.GetLogs(ctx, job.Id, dataflow.LEVEL_ERROR)
+				l, err := c.Service.GetLogs(ctx, job.Id, LEVEL_ERROR)
 				if err != nil {
 					// log error event
 					logs = append(logs, "Failed to fetch logs...")
@@ -111,7 +110,7 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]keiho.No
 	return notifications, nil
 }
 
-func (c *DataflowChecker) links(job dataflow.Job) map[string]*url.URL {
+func (c *DataflowChecker) links(job Job) map[string]*url.URL {
 	links := map[string]*url.URL{}
 
 	// the url to the Dataflow UI

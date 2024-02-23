@@ -1,4 +1,4 @@
-package handler
+package slack
 
 import (
 	"context"
@@ -8,18 +8,17 @@ import (
 
 	"github.com/slack-go/slack"
 	keiho "github.com/yannickalex07/dmon/pkg"
-	slackService "github.com/yannickalex07/dmon/pkg/external/slack"
 )
 
 type SlackHandler struct {
-	Service slackService.SlackService
+	Service SlackService
 
 	Channel string
 }
 
 func NewSlackHandler(token string, channel string) *SlackHandler {
 	return &SlackHandler{
-		Service: slackService.NewSlackService(token),
+		Service: NewSlackService(token),
 		Channel: channel,
 	}
 }
