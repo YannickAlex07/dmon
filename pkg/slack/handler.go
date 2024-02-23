@@ -16,13 +16,6 @@ type SlackHandler struct {
 	Channel string
 }
 
-func NewSlackHandler(token string, channel string) *SlackHandler {
-	return &SlackHandler{
-		Service: NewSlackService(token),
-		Channel: channel,
-	}
-}
-
 func (s *SlackHandler) Handle(ctx context.Context, notification keiho.Notification) error {
 	return s.Service.Send(ctx, s.Channel, s.convertToBlocks(notification))
 }
@@ -42,7 +35,15 @@ func (s *SlackHandler) convertToBlocks(notification keiho.Notification) []slack.
 
 	// logs
 	if len(notification.Logs) > 0 {
-		logStr := strings.Join(notification.Logs[len(notification.Logs)-5:], "\n")
+		var logParts []string
+
+		if len(notification.Logs) > 5 {
+			logParts = notification.Logs[len(notification.Logs)-5:]
+		} else {
+			logParts = notification.Logs
+		}
+
+		logStr := strings.Join(logParts, "\n")
 		errorText := fmt.Sprintf("Last Log Messages: ```%s```", logStr)
 
 		log.Println(errorText)
