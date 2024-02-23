@@ -97,6 +97,7 @@ func TestDataflowChecker(t *testing.T) {
 	expectedNotifications := []keiho.Notification{
 		// This is the notification for job id "c"
 		{
+			Key:         fmt.Sprintf("DATAFLOW-ERROR-c-%s", since.Add(-time.Hour*1).Format(time.RFC3339)),
 			Title:       "❌ Dataflow Job Failed",
 			Description: fmt.Sprintf("The job `job-3` with id `c` failed at *%s*!", since.Add(time.Minute*1).Format(time.RFC1123)),
 			Logs: []string{
@@ -108,6 +109,7 @@ func TestDataflowChecker(t *testing.T) {
 		},
 		// This is the notification for job id "d"
 		{
+			Key:         fmt.Sprintf("DATAFLOW-TIMEOUT-d-%s", since.Add(-time.Hour*5).Format(time.RFC3339)),
 			Title:       "⏱️ Dataflow Job Running For Too Long",
 			Description: "The job `job-4` with id `d` crossed the maximum timeout limit with a runtime of *6h0m0s*.",
 			Logs:        []string{},
@@ -185,6 +187,7 @@ func TestDataflowCheckerWithJobFilter(t *testing.T) {
 	expectedNotifications := []keiho.Notification{
 		// This is the notification for job id "c"
 		{
+			Key:         fmt.Sprintf("DATAFLOW-ERROR-a-%s", since.Add(-time.Hour*1).Format(time.RFC3339)),
 			Title:       "❌ Dataflow Job Failed",
 			Description: fmt.Sprintf("The job `job-1` with id `a` failed at *%s*!", since.Add(time.Minute*1).Format(time.RFC1123)),
 			Logs: []string{
