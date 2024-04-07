@@ -1,5 +1,7 @@
 # dmon - Google Dataflow Monitor
 
+⚠️ **There is currently a bigger rewrite of this package underway. Only bug fixes will be done on this version. Check the open PR for Version 2 if you want to know more**
+
 `dmon` is a CLI based application to monitor Google Dataflow jobs in a GCP project and send notifications if a job fails or times-out.
 
 ### Usage
