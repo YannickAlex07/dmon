@@ -9,19 +9,19 @@ import (
 	"github.com/yannickalex07/dmon/pkg/local"
 )
 
-func TestMemoryStoreStoringWithoutExpire(t *testing.T) {
+func TestMemoryStateStoringWithoutExpire(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
-	storage := local.NewMemoryStorage(10 * time.Second)
+	state := local.NewMemoryState(10 * time.Second)
 
 	// Act
-	err := storage.Store(ctx, "key", "value", false)
+	err := state.Store(ctx, "key", "value", false)
 	if err != nil {
 		t.Errorf("Error storing value: %v", err)
 	}
 
 	// Assert
-	value, err := storage.Get(ctx, "key")
+	value, err := state.Get(ctx, "key")
 	if err != nil {
 		t.Errorf("Error getting value: %v", err)
 	}
@@ -34,13 +34,13 @@ func TestMemoryStoreStoringWithoutExpire(t *testing.T) {
 	assert.Equal(t, "value", valueStr)
 }
 
-func TestMemoryStoreStoringWithExpire(t *testing.T) {
+func TestMemoryStateStoringWithExpire(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
-	storage := local.NewMemoryStorage(1 * time.Second)
+	state := local.NewMemoryState(1 * time.Second)
 
 	// Act
-	err := storage.Store(ctx, "key", "value", true)
+	err := state.Store(ctx, "key", "value", true)
 	if err != nil {
 		t.Errorf("Error storing value: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestMemoryStoreStoringWithExpire(t *testing.T) {
 	time.Sleep(2 * time.Second)
 
 	// Assert
-	exists, err := storage.Exists(ctx, "key")
+	exists, err := state.Exists(ctx, "key")
 	if err != nil {
 		t.Errorf("Error checking for value: %v", err)
 	}
@@ -56,18 +56,18 @@ func TestMemoryStoreStoringWithExpire(t *testing.T) {
 	assert.False(t, exists)
 }
 
-func TestMemoryStoreExistsWithExistingKey(t *testing.T) {
+func TestMemoryStateExistsWithExistingKey(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
-	storage := local.NewMemoryStorage(1 * time.Second)
+	state := local.NewMemoryState(1 * time.Second)
 
-	err := storage.Store(ctx, "key", "value", false)
+	err := state.Store(ctx, "key", "value", false)
 	if err != nil {
 		t.Errorf("Error storing value: %v", err)
 	}
 
 	// Act
-	exists, err := storage.Exists(ctx, "key")
+	exists, err := state.Exists(ctx, "key")
 	if err != nil {
 		t.Errorf("Error checking for value: %v", err)
 	}
@@ -76,13 +76,13 @@ func TestMemoryStoreExistsWithExistingKey(t *testing.T) {
 	assert.True(t, exists)
 }
 
-func TestMemoryStoreExistsWithNonExistingKey(t *testing.T) {
+func TestMemoryStateExistsWithNonExistingKey(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
-	storage := local.NewMemoryStorage(1 * time.Second)
+	state := local.NewMemoryState(1 * time.Second)
 
 	// Act
-	exists, err := storage.Exists(ctx, "key")
+	exists, err := state.Exists(ctx, "key")
 	if err != nil {
 		t.Errorf("Error checking for value: %v", err)
 	}
@@ -91,18 +91,18 @@ func TestMemoryStoreExistsWithNonExistingKey(t *testing.T) {
 	assert.False(t, exists)
 }
 
-func TestMemoryStoreGetWithExistingKey(t *testing.T) {
+func TestMemoryStateGetWithExistingKey(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
-	storage := local.NewMemoryStorage(1 * time.Second)
+	state := local.NewMemoryState(1 * time.Second)
 
-	err := storage.Store(ctx, "key", "value", false)
+	err := state.Store(ctx, "key", "value", false)
 	if err != nil {
 		t.Errorf("Error storing value: %v", err)
 	}
 
 	// Act
-	value, err := storage.Get(ctx, "key")
+	value, err := state.Get(ctx, "key")
 	if err != nil {
 		t.Errorf("Error getting value: %v", err)
 	}
@@ -116,13 +116,13 @@ func TestMemoryStoreGetWithExistingKey(t *testing.T) {
 	assert.Equal(t, "value", valueStr)
 }
 
-func TestMemoryStoreGetWithNonExistingKey(t *testing.T) {
+func TestMemoryStateGetWithNonExistingKey(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
-	storage := local.NewMemoryStorage(1 * time.Second)
+	state := local.NewMemoryState(1 * time.Second)
 
 	// Act
-	value, err := storage.Get(ctx, "key")
+	value, err := state.Get(ctx, "key")
 
 	// Assert
 	assert.Error(t, err)

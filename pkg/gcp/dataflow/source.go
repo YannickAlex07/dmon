@@ -19,9 +19,9 @@ const (
 
 // Checker
 
-// A checker for Dataflow.
+// A source to get notifications from Dataflow.
 // Will check for failed jobs as well as batch jobs that run for too long.
-type DataflowChecker struct {
+type DataflowSource struct {
 	Service DataflowService
 
 	// A custom filter that can be used to filter out specific jobs to check.
@@ -33,7 +33,7 @@ type DataflowChecker struct {
 	Timeout time.Duration
 }
 
-func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]keiho.Notification, error) {
+func (c DataflowSource) Check(ctx context.Context, since time.Time) ([]keiho.Notification, error) {
 	// list all jobs
 	log.Println("listing jobs")
 	jobs, err := c.Service.ListJobs(ctx)
@@ -110,7 +110,7 @@ func (c DataflowChecker) Check(ctx context.Context, since time.Time) ([]keiho.No
 	return notifications, nil
 }
 
-func (c *DataflowChecker) links(job Job) map[string]*url.URL {
+func (c *DataflowSource) links(job Job) map[string]*url.URL {
 	links := map[string]*url.URL{}
 
 	// the url to the Dataflow UI
@@ -122,6 +122,6 @@ func (c *DataflowChecker) links(job Job) map[string]*url.URL {
 	return links
 }
 
-func (c *DataflowChecker) createNotificationKey(nType notificationType, jobId string, startTime time.Time) string {
+func (c *DataflowSource) createNotificationKey(nType notificationType, jobId string, startTime time.Time) string {
 	return fmt.Sprintf("DATAFLOW-%s-%s-%s", nType, jobId, startTime.Format(time.RFC3339))
 }

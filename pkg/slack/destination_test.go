@@ -11,7 +11,7 @@ import (
 	"github.com/yannickalex07/dmon/pkg/slack"
 )
 
-func TestSlackHandlerWithoutLogs(t *testing.T) {
+func TestSlackDestinationWithoutLogs(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
 	replacer := strings.NewReplacer(
@@ -21,7 +21,7 @@ func TestSlackHandlerWithoutLogs(t *testing.T) {
 	)
 
 	service := SlackServiceMock{}
-	handler := slack.SlackHandler{Service: &service, Channel: "channel"}
+	destination := slack.SlackDestination{Service: &service, Channel: "channel"}
 
 	notification := keiho.Notification{
 		Key:         "Test",
@@ -73,7 +73,7 @@ func TestSlackHandlerWithoutLogs(t *testing.T) {
 	}
 
 	// Act
-	err := handler.Handle(ctx, notification)
+	err := destination.Handle(ctx, notification)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +82,7 @@ func TestSlackHandlerWithoutLogs(t *testing.T) {
 	assert.Equal(t, expectedMessage, service.Messages[0])
 }
 
-func TestSlackHandlerWithSingleLogMessage(t *testing.T) {
+func TestSlackDestinationWithSingleLogMessage(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
 	replacer := strings.NewReplacer(
@@ -93,7 +93,7 @@ func TestSlackHandlerWithSingleLogMessage(t *testing.T) {
 	)
 
 	service := SlackServiceMock{}
-	handler := slack.SlackHandler{Service: &service, Channel: "channel"}
+	destination := slack.SlackDestination{Service: &service, Channel: "channel"}
 
 	notification := keiho.Notification{
 		Key:         "Test",
@@ -154,7 +154,7 @@ func TestSlackHandlerWithSingleLogMessage(t *testing.T) {
 	}
 
 	// Act
-	err := handler.Handle(ctx, notification)
+	err := destination.Handle(ctx, notification)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +163,7 @@ func TestSlackHandlerWithSingleLogMessage(t *testing.T) {
 	assert.Equal(t, expectedMessage, service.Messages[0])
 }
 
-func TestSlackHandlerWithMultipleLogMessages(t *testing.T) {
+func TestSlackDestinationWithMultipleLogMessages(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
 	replacer := strings.NewReplacer(
@@ -174,7 +174,7 @@ func TestSlackHandlerWithMultipleLogMessages(t *testing.T) {
 	)
 
 	service := SlackServiceMock{}
-	handler := slack.SlackHandler{Service: &service, Channel: "channel"}
+	destination := slack.SlackDestination{Service: &service, Channel: "channel"}
 
 	notification := keiho.Notification{
 		Key:         "Test",
@@ -240,7 +240,7 @@ func TestSlackHandlerWithMultipleLogMessages(t *testing.T) {
 	}
 
 	// Act
-	err := handler.Handle(ctx, notification)
+	err := destination.Handle(ctx, notification)
 	if err != nil {
 		t.Fatal(err)
 	}

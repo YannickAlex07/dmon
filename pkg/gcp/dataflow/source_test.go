@@ -12,7 +12,7 @@ import (
 	dataflow "github.com/yannickalex07/dmon/pkg/gcp/dataflow"
 )
 
-func TestDataflowChecker(t *testing.T) {
+func TestDataflowSource(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
 	since := time.Now().UTC().Add(-time.Hour * 1)
@@ -119,14 +119,14 @@ func TestDataflowChecker(t *testing.T) {
 		},
 	}
 
-	checker := dataflow.DataflowChecker{
+	source := dataflow.DataflowSource{
 		Service:   service,
 		JobFilter: func(job dataflow.Job) bool { return true },
 		Timeout:   time.Hour * 3,
 	}
 
 	// Act
-	notifications, err := checker.Check(ctx, since)
+	notifications, err := source.Check(ctx, since)
 
 	// Assert
 	assert.NoError(t, err)
@@ -134,7 +134,7 @@ func TestDataflowChecker(t *testing.T) {
 	assert.Equal(t, expectedNotifications, notifications)
 }
 
-func TestDataflowCheckerWithJobFilter(t *testing.T) {
+func TestDataflowSourceWithJobFilter(t *testing.T) {
 	// Arrange
 	ctx := context.Background()
 	since := time.Now().UTC().Add(-time.Hour * 1)
@@ -204,14 +204,14 @@ func TestDataflowCheckerWithJobFilter(t *testing.T) {
 		return job.Name != "job-2"
 	}
 
-	checker := dataflow.DataflowChecker{
+	source := dataflow.DataflowSource{
 		Service:   service,
 		JobFilter: filter,
 		Timeout:   time.Hour * 3,
 	}
 
 	// Act
-	notifications, err := checker.Check(ctx, since)
+	notifications, err := source.Check(ctx, since)
 
 	// Assert
 	assert.NoError(t, err)

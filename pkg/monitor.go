@@ -13,9 +13,9 @@ import (
 const LAST_RUNTIME_KEY = "KEIHO_LAST_RUNTIME"
 
 type Monitor struct {
-	Checkers []Checker
-	Handlers []Handler
-	Storage  Storage
+	Sources      []Source
+	Destinations []Destination
+	State        State
 }
 
 func (m *Monitor) StartWithSchedule(ctx context.Context, schedule string) error {
@@ -57,7 +57,7 @@ func (m *Monitor) Start(ctx context.Context) error {
 	// store the execution time in storage
 	log.Println("storing execution time in storage")
 	nowStr := now.Format(time.RFC3339)
-	err = m.Storage.Store(ctx, "KEIHO_LAST_RUNTIME", nowStr, false)
+	err = m.State.Store(ctx, LAST_RUNTIME_KEY, nowStr, false)
 	if err != nil {
 		log.Printf("failed to store execution time in storage: %v", err)
 		return err
@@ -68,7 +68,7 @@ func (m *Monitor) Start(ctx context.Context) error {
 
 func (m *Monitor) fetchLastRuntime(ctx context.Context) (time.Time, error) {
 	// fetch the last runtime as string from storage
-	lastRuntime, err := m.Storage.Get(ctx, LAST_RUNTIME_KEY)
+	lastRuntime, err := m.State.Get(ctx, LAST_RUNTIME_KEY)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -98,10 +98,10 @@ func (m *Monitor) runCheckers(ctx context.Context, since time.Time) ([]Notificat
 	var wg sync.WaitGroup
 	resultsChan := make(chan Notification)
 
-	for _, checker := range m.Checkers {
+	for _, checker := range m.Sources {
 		wg.Add(1)
 
-		go func(c Checker) {
+		go func(c Source) {
 			defer wg.Done()
 
 			// run the checker
@@ -137,7 +137,7 @@ func (m *Monitor) runHandlers(ctx context.Context, notifications []Notification)
 	for _, notification := range notifications {
 		// check if the hash exists in the storage
 		log.Printf("checking if notification exists in storage - key: %s", notification.Key)
-		exists, err := m.Storage.Exists(ctx, notification.Key)
+		exists, err := m.State.Exists(ctx, notification.Key)
 		if err != nil {
 			// TODO: log error
 			log.Printf("failed to check if hash exists in storage: %v", err)
@@ -151,10 +151,10 @@ func (m *Monitor) runHandlers(ctx context.Context, notifications []Notification)
 			var wg sync.WaitGroup
 
 			log.Printf("notification does not exist in storage, sending notification to handlers")
-			for _, handler := range m.Handlers {
+			for _, handler := range m.Destinations {
 				wg.Add(1)
 
-				go func(h Handler) {
+				go func(h Destination) {
 					defer wg.Done()
 					if err := h.Handle(ctx, notification); err != nil {
 						log.Printf("failed to handle notification: %v", err)
@@ -166,7 +166,7 @@ func (m *Monitor) runHandlers(ctx context.Context, notifications []Notification)
 
 			// store notification in storage
 			log.Println("storing notification in storage")
-			err = m.Storage.Store(ctx, notification.Key, notification, true)
+			err = m.State.Store(ctx, notification.Key, notification, true)
 			if err != nil {
 				// TODO: log error
 				log.Printf("failed to store notification in storage: %v", err)

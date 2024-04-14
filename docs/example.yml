@@ -1,0 +1,39 @@
+logging:
+  verbose: true
+
+monitors:
+  - name: Example
+
+    sources:
+      dataflow:
+        project: xxxxx
+        location: xxxxx
+
+      http:
+        url: xxxxx
+        expected_status: 200
+
+      stackdriver:
+        project: xxxxx
+        query: xxxxx
+
+    destinations:
+      slack:
+        token: xxxxx
+        channel: xxxxx
+
+    schedule:
+      every: 1
+      unit: minute | hour | day | week | month
+      cron: "0 0 * * *"
+
+    state:
+      memory:
+        ttl: xxxxx
+      
+      redis:
+        host: xxxxx
+        port: xxxxx
+        db: xxxxx
+        password: xxxxx
+        ttl: xxxxx

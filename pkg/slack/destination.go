@@ -10,17 +10,17 @@ import (
 	keiho "github.com/yannickalex07/dmon/pkg"
 )
 
-type SlackHandler struct {
+type SlackDestination struct {
 	Service SlackService
 
 	Channel string
 }
 
-func (s *SlackHandler) Handle(ctx context.Context, notification keiho.Notification) error {
+func (s *SlackDestination) Handle(ctx context.Context, notification keiho.Notification) error {
 	return s.Service.Send(ctx, s.Channel, s.convertToBlocks(notification))
 }
 
-func (s *SlackHandler) convertToBlocks(notification keiho.Notification) []slack.Block {
+func (s *SlackDestination) convertToBlocks(notification keiho.Notification) []slack.Block {
 	blocks := []slack.Block{}
 
 	// title

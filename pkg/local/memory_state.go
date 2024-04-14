@@ -8,24 +8,24 @@ import (
 	"github.com/jellydator/ttlcache/v3"
 )
 
-type MemoryStorage struct {
+type MemoryState struct {
 	// The TTL for every notification that the state will store
 	cache *ttlcache.Cache[string, interface{}]
 }
 
-func NewMemoryStorage(ttl time.Duration) MemoryStorage {
+func NewMemoryState(ttl time.Duration) MemoryState {
 	cache := ttlcache.New(
 		ttlcache.WithTTL[string, interface{}](ttl),
 	)
 
 	go cache.Start()
 
-	return MemoryStorage{
+	return MemoryState{
 		cache: cache,
 	}
 }
 
-func (m MemoryStorage) Store(ctx context.Context, key string, value interface{}, shouldExpire bool) error {
+func (m MemoryState) Store(ctx context.Context, key string, value interface{}, shouldExpire bool) error {
 	ttl := ttlcache.NoTTL
 	if shouldExpire {
 		ttl = ttlcache.DefaultTTL
@@ -35,7 +35,7 @@ func (m MemoryStorage) Store(ctx context.Context, key string, value interface{},
 	return nil
 }
 
-func (m MemoryStorage) Get(ctx context.Context, key string) (interface{}, error) {
+func (m MemoryState) Get(ctx context.Context, key string) (interface{}, error) {
 	hasKey := m.cache.Has(key)
 
 	if !hasKey {
@@ -46,6 +46,6 @@ func (m MemoryStorage) Get(ctx context.Context, key string) (interface{}, error)
 	return item, nil
 }
 
-func (m MemoryStorage) Exists(ctx context.Context, key string) (bool, error) {
+func (m MemoryState) Exists(ctx context.Context, key string) (bool, error) {
 	return m.cache.Has(key), nil
 }

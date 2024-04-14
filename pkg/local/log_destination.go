@@ -7,9 +7,9 @@ import (
 	keiho "github.com/yannickalex07/dmon/pkg"
 )
 
-type LogHandler struct{}
+type LogDestination struct{}
 
-func (*LogHandler) Handle(ctx context.Context, notification keiho.Notification) error {
+func (*LogDestination) Handle(ctx context.Context, notification keiho.Notification) error {
 	log.Printf("notification: %+v", notification)
 	return nil
 }
