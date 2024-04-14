@@ -16,9 +16,18 @@ type Monitor struct {
 	Sources      []Source
 	Destinations []Destination
 	State        State
+	Schedule     string
 }
 
-func (m *Monitor) StartWithSchedule(ctx context.Context, schedule string) error {
+func (m *Monitor) Start(ctx context.Context) error {
+	if m.Schedule != "" {
+		return m.runOnSchedule(ctx)
+	}
+
+	return m.run(ctx)
+}
+
+func (m *Monitor) runOnSchedule(ctx context.Context) error {
 	// monitor func
 	scheduler, err := gocron.NewScheduler(gocron.WithLocation(time.UTC))
 	if err != nil {
@@ -26,8 +35,8 @@ func (m *Monitor) StartWithSchedule(ctx context.Context, schedule string) error 
 	}
 
 	_, err = scheduler.NewJob(
-		gocron.CronJob(schedule, false),
-		gocron.NewTask(m.Start, context.Background()),
+		gocron.CronJob(m.Schedule, false),
+		gocron.NewTask(m.run, context.Background()),
 	)
 
 	if err != nil {
@@ -46,7 +55,7 @@ func (m *Monitor) StartWithSchedule(ctx context.Context, schedule string) error 
 	return nil
 }
 
-func (m *Monitor) Start(ctx context.Context) error {
+func (m *Monitor) run(ctx context.Context) error {
 	now := time.Now().UTC()
 
 	// fetch last runtime from storage

@@ -11,7 +11,7 @@ type MemoryStateConfig struct {
 	TTL int `validate:"gte=1" yaml:"ttl"`
 }
 
-func (c *MemoryStateConfig) ToState() inframon.State {
+func (c *MemoryStateConfig) Get() inframon.State {
 	s := local.NewMemoryState(time.Duration(c.TTL))
 
 	return &s

@@ -1,8 +1,47 @@
 package cli
 
-import "github.com/urfave/cli/v2"
+import (
+	"context"
+	"sync"
+
+	"github.com/urfave/cli/v2"
+	"github.com/yannickalex07/inframon/internal/config"
+	inframon "github.com/yannickalex07/inframon/pkg"
+)
 
 func run(c *cli.Context) error {
+	// parse config
+	config, err := config.Parse("")
+	if err != nil {
+		return err
+	}
+
+	// create context
+	ctx := context.Background()
+
+	// get monitors
+	mons, err := config.GetMonitors(ctx)
+	if err != nil {
+		return err
+	}
+
+	// run the monitors
+	var wg sync.WaitGroup
+
+	for _, mon := range mons {
+		wg.Add(1)
+
+		go func(m inframon.Monitor) {
+			defer wg.Done()
+
+			m.Start(ctx)
+		}(mon)
+	}
+
+	go func() {
+		wg.Wait()
+	}()
+
 	return nil
 }
 

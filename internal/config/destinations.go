@@ -12,7 +12,7 @@ type DestinationsConfig struct {
 	Slack []destinations.SlackDestinationConfig `yaml:"slack"`
 }
 
-func (c *DestinationsConfig) ToDestinations(ctx context.Context) ([]inframon.Destination, error) {
+func (c *DestinationsConfig) Get(ctx context.Context) ([]inframon.Destination, error) {
 	var d []inframon.Destination
 
 	for _, s := range c.Slack {

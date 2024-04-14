@@ -13,7 +13,7 @@ type SourcesConfig struct {
 	Dataflow []sources.DataflowSourceConfig `yaml:"dataflow"`
 }
 
-func (c *SourcesConfig) ToSources(ctx context.Context) ([]inframon.Source, error) {
+func (c *SourcesConfig) Get(ctx context.Context) ([]inframon.Source, error) {
 	var s []inframon.Source
 
 	// for _, h := range c.HTTP {

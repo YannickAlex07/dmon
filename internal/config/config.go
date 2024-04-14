@@ -1,11 +1,9 @@
 package config
 
 import (
-	"os"
+	"context"
 
-	"github.com/creasty/defaults"
-	"gopkg.in/dealancer/validate.v2"
-	"gopkg.in/yaml.v3"
+	inframon "github.com/yannickalex07/inframon/pkg"
 )
 
 type Config struct {
@@ -14,30 +12,17 @@ type Config struct {
 	Monitors []MonitorConfig `yaml:"monitors"`
 }
 
-func Parse(path string) (*Config, error) {
-	c := &Config{}
+func (c *Config) GetMonitors(ctx context.Context) ([]inframon.Monitor, error) {
+	var m []inframon.Monitor
 
-	// set any default values
-	if err := defaults.Set(c); err != nil {
-		return nil, err
+	for _, mc := range c.Monitors {
+		mon, err := mc.Get(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		m = append(m, mon)
 	}
 
-	// read the file
-	yamlFile, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	// unmarshal config
-	err = yaml.Unmarshal(yamlFile, &c)
-	if err != nil {
-		return nil, err
-	}
-
-	// validate the config
-	if err := validate.Validate(&c); err != nil {
-		return nil, err
-	}
-
-	return c, nil
+	return m, nil
 }
