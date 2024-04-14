@@ -15,7 +15,7 @@ func main() {
 	ctx := context.Background()
 
 	// build storage
-	memoryStorage := local.NewMemoryState(time.Hour * 24)
+	memoryState := local.NewMemoryState(time.Hour * 24)
 
 	// build handler
 	logHandler := local.LogDestination{}
@@ -32,9 +32,9 @@ func main() {
 
 	// build monitor
 	monitor := keiho.Monitor{
-		Storage:      memoryStorage,
-		Destinations: []keiho.Handler{&logHandler, &slackHandler},
-		Checkers:     []keiho.Checker{&dataflowChecker},
+		State:        memoryState,
+		Destinations: []keiho.Destination{&logHandler, &slackHandler},
+		Sources:      []keiho.Source{&dataflowChecker},
 	}
 
 	// start monitor

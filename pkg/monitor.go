@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-co-op/gocron"
+	"github.com/go-co-op/gocron/v2"
 )
 
 const LAST_RUNTIME_KEY = "KEIHO_LAST_RUNTIME"
@@ -20,13 +20,28 @@ type Monitor struct {
 
 func (m *Monitor) StartWithSchedule(ctx context.Context, schedule string) error {
 	// monitor func
-	scheduler := gocron.NewScheduler(time.UTC)
+	scheduler, err := gocron.NewScheduler(gocron.WithLocation(time.UTC))
+	if err != nil {
+		return err
+	}
 
-	scheduler.Cron(schedule).Do(func() {
-		m.Start(ctx)
-	})
+	_, err = scheduler.NewJob(
+		gocron.CronJob(schedule, false),
+		gocron.NewTask(m.Start, context.Background()),
+	)
 
-	scheduler.StartBlocking()
+	if err != nil {
+		return err
+	}
+
+	scheduler.Start()
+
+	<-ctx.Done()
+
+	err = scheduler.Shutdown()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -42,14 +57,14 @@ func (m *Monitor) Start(ctx context.Context) error {
 	}
 
 	// running the checkers
-	notifications, err := m.runCheckers(ctx, lastRuntimeTime)
+	notifications, err := m.checkSources(ctx, lastRuntimeTime)
 	if err != nil {
 		// TODO: log error
 		log.Printf("failed to run checkers: %v", err)
 	}
 
 	// running the handlers
-	err = m.runHandlers(ctx, notifications)
+	err = m.notifyDestinations(ctx, notifications)
 	if err != nil {
 		log.Printf("failed to run handlers: %v", err)
 	}
@@ -94,7 +109,7 @@ func (m *Monitor) fetchLastRuntime(ctx context.Context) (time.Time, error) {
 	return t, nil
 }
 
-func (m *Monitor) runCheckers(ctx context.Context, since time.Time) ([]Notification, error) {
+func (m *Monitor) checkSources(ctx context.Context, since time.Time) ([]Notification, error) {
 	var wg sync.WaitGroup
 	resultsChan := make(chan Notification)
 
@@ -133,7 +148,7 @@ func (m *Monitor) runCheckers(ctx context.Context, since time.Time) ([]Notificat
 	return notifications, nil
 }
 
-func (m *Monitor) runHandlers(ctx context.Context, notifications []Notification) error {
+func (m *Monitor) notifyDestinations(ctx context.Context, notifications []Notification) error {
 	for _, notification := range notifications {
 		// check if the hash exists in the storage
 		log.Printf("checking if notification exists in storage - key: %s", notification.Key)
