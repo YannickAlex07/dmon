@@ -1,6 +1,8 @@
 package util
 
-import "time"
+import (
+	"time"
+)
 
 func ParseTimestamp(str string) (time.Time, error) {
 	t, err := time.Parse(time.RFC3339, str)

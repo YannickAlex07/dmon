@@ -1,0 +1,24 @@
+logging:
+  verbose: true
+
+monitors:
+  - sources:
+      dataflow:
+        - project: xxxxx
+          location: xxxxx
+
+      http:
+        - url: xxxxx
+          expected_status: 200
+
+    destinations:
+      slack:
+        - token: xxxxx
+          channel: xxxxx
+
+    schedule:
+      cron: "0 0 * * *"
+
+    state:
+      memory:
+        ttl: xxxxx
