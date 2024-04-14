@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"time"
 
-	keiho "github.com/yannickalex07/dmon/pkg"
+	inframon "github.com/yannickalex07/inframon/pkg"
 )
 
 type notificationType string
@@ -33,7 +33,7 @@ type DataflowSource struct {
 	Timeout time.Duration
 }
 
-func (c DataflowSource) Check(ctx context.Context, since time.Time) ([]keiho.Notification, error) {
+func (c DataflowSource) Check(ctx context.Context, since time.Time) ([]inframon.Notification, error) {
 	// list all jobs
 	log.Println("listing jobs")
 	jobs, err := c.Service.ListJobs(ctx)
@@ -42,7 +42,7 @@ func (c DataflowSource) Check(ctx context.Context, since time.Time) ([]keiho.Not
 	}
 
 	log.Printf("found %d jobs", len(jobs))
-	notifications := []keiho.Notification{}
+	notifications := []inframon.Notification{}
 	for _, job := range jobs {
 		// filter down jobs by the provided filter
 		if c.JobFilter != nil && !c.JobFilter(job) {
@@ -74,7 +74,7 @@ func (c DataflowSource) Check(ctx context.Context, since time.Time) ([]keiho.Not
 
 				// create the notification
 				log.Println("creating notification")
-				n := keiho.Notification{
+				n := inframon.Notification{
 					Key:         c.createNotificationKey(errNotification, job.Id, job.StartTime),
 					Title:       "❌ Dataflow Job Failed",
 					Description: fmt.Sprintf("The job `%s` with id `%s` failed at *%s*!", job.Name, job.Id, job.Status.UpdatedAt.Format(time.RFC1123)),
@@ -93,7 +93,7 @@ func (c DataflowSource) Check(ctx context.Context, since time.Time) ([]keiho.Not
 			log.Printf("checking runtime of job: %s", job.Id)
 			if job.Runtime() >= c.Timeout {
 				log.Printf("job is running for too long: %s", job.Id)
-				n := keiho.Notification{
+				n := inframon.Notification{
 					Key:         c.createNotificationKey(timeoutNotification, job.Id, job.StartTime),
 					Title:       "⏱️ Dataflow Job Running For Too Long",
 					Description: fmt.Sprintf("The job `%s` with id `%s` crossed the maximum timeout limit with a runtime of *%s*.", job.Name, job.Id, job.Runtime().Round(time.Second)),

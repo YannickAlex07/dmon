@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	keiho "github.com/yannickalex07/dmon/pkg"
-	"github.com/yannickalex07/dmon/pkg/gcp/dataflow"
-	"github.com/yannickalex07/dmon/pkg/local"
-	"github.com/yannickalex07/dmon/pkg/slack"
+	inframon "github.com/yannickalex07/inframon/pkg"
+	"github.com/yannickalex07/inframon/pkg/gcp/dataflow"
+	"github.com/yannickalex07/inframon/pkg/local"
+	"github.com/yannickalex07/inframon/pkg/slack"
 )
 
 func main() {
@@ -31,10 +31,10 @@ func main() {
 	}}
 
 	// build monitor
-	monitor := keiho.Monitor{
+	monitor := inframon.Monitor{
 		State:        memoryState,
-		Destinations: []keiho.Destination{&logHandler, &slackHandler},
-		Sources:      []keiho.Source{&dataflowChecker},
+		Destinations: []inframon.Destination{&logHandler, &slackHandler},
+		Sources:      []inframon.Source{&dataflowChecker},
 	}
 
 	// start monitor

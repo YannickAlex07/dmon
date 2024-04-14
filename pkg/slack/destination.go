@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/slack-go/slack"
-	keiho "github.com/yannickalex07/dmon/pkg"
+	inframon "github.com/yannickalex07/inframon/pkg"
 )
 
 type SlackDestination struct {
@@ -16,11 +16,11 @@ type SlackDestination struct {
 	Channel string
 }
 
-func (s *SlackDestination) Handle(ctx context.Context, notification keiho.Notification) error {
+func (s *SlackDestination) Handle(ctx context.Context, notification inframon.Notification) error {
 	return s.Service.Send(ctx, s.Channel, s.convertToBlocks(notification))
 }
 
-func (s *SlackDestination) convertToBlocks(notification keiho.Notification) []slack.Block {
+func (s *SlackDestination) convertToBlocks(notification inframon.Notification) []slack.Block {
 	blocks := []slack.Block{}
 
 	// title

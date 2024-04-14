@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yannickalex07/dmon/pkg/util"
+	"github.com/yannickalex07/inframon/pkg/util"
 )
 
 func TestParseTimestampWithValidTimestamp(t *testing.T) {

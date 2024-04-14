@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/yannickalex07/dmon/pkg/local"
+	"github.com/yannickalex07/inframon/pkg/local"
 )
 
 func TestMemoryStateStoringWithoutExpire(t *testing.T) {

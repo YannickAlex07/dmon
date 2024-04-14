@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	keiho "github.com/yannickalex07/dmon/pkg"
-	"github.com/yannickalex07/dmon/pkg/slack"
+	keiho "github.com/yannickalex07/inframon/pkg"
+	"github.com/yannickalex07/inframon/pkg/slack"
 )
 
 func TestSlackDestinationWithoutLogs(t *testing.T) {

@@ -1,4 +1,4 @@
-package keiho
+package inframon
 
 import (
 	"context"

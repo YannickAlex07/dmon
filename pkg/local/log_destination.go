@@ -4,12 +4,12 @@ import (
 	"context"
 	"log"
 
-	keiho "github.com/yannickalex07/dmon/pkg"
+	inframon "github.com/yannickalex07/inframon/pkg"
 )
 
 type LogDestination struct{}
 
-func (*LogDestination) Handle(ctx context.Context, notification keiho.Notification) error {
+func (*LogDestination) Handle(ctx context.Context, notification inframon.Notification) error {
 	log.Printf("notification: %+v", notification)
 	return nil
 }

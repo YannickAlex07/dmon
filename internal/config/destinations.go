@@ -1,7 +1,27 @@
 package config
 
-import "github.com/yannickalex07/dmon/internal/config/destinations"
+import (
+	"context"
+	"errors"
+
+	"github.com/yannickalex07/inframon/internal/config/destinations"
+	inframon "github.com/yannickalex07/inframon/pkg"
+)
 
 type DestinationsConfig struct {
 	Slack []destinations.SlackDestinationConfig `yaml:"slack"`
+}
+
+func (c *DestinationsConfig) ToDestinations(ctx context.Context) ([]inframon.Destination, error) {
+	var d []inframon.Destination
+
+	for _, s := range c.Slack {
+		d = append(d, s.ToDestination())
+	}
+
+	if len(d) == 0 {
+		return nil, errors.New("no destinations configured")
+	}
+
+	return d, nil
 }

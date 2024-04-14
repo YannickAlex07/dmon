@@ -1,4 +1,4 @@
-module github.com/yannickalex07/dmon
+module github.com/yannickalex07/inframon
 
 go 1.21
 
@@ -10,6 +10,7 @@ require (
 
 require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
@@ -18,9 +19,12 @@ require (
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/jonboulle/clockwork v0.4.0 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
+	github.com/leodido/go-urn v1.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.50.0 // indirect
 	go.opentelemetry.io/otel v1.25.0 // indirect
 	go.opentelemetry.io/otel/metric v1.25.0 // indirect
@@ -41,6 +45,7 @@ require (
 	github.com/googleapis/gax-go/v2 v2.12.3 // indirect
 	github.com/slack-go/slack v0.12.5
 	github.com/stretchr/testify v1.9.0
+	github.com/urfave/cli/v2 v2.27.1
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/oauth2 v0.19.0 // indirect
@@ -49,5 +54,6 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/grpc v1.63.2 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
+	gopkg.in/dealancer/validate.v2 v2.1.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

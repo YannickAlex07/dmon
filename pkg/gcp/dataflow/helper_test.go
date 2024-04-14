@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	dataflow "github.com/yannickalex07/dmon/pkg/gcp/dataflow"
+	dataflow "github.com/yannickalex07/inframon/pkg/gcp/dataflow"
 )
 
 // DataflowServiceMock

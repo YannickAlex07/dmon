@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	keiho "github.com/yannickalex07/dmon/pkg"
-	dataflow "github.com/yannickalex07/dmon/pkg/gcp/dataflow"
+	inframon "github.com/yannickalex07/inframon/pkg"
+	dataflow "github.com/yannickalex07/inframon/pkg/gcp/dataflow"
 )
 
 func TestDataflowSource(t *testing.T) {
@@ -94,7 +94,7 @@ func TestDataflowSource(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expectedNotifications := []keiho.Notification{
+	expectedNotifications := []inframon.Notification{
 		// This is the notification for job id "c"
 		{
 			Key:         fmt.Sprintf("DATAFLOW-ERROR-c-%s", since.Add(-time.Hour*1).Format(time.RFC3339)),
@@ -184,7 +184,7 @@ func TestDataflowSourceWithJobFilter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expectedNotifications := []keiho.Notification{
+	expectedNotifications := []inframon.Notification{
 		// This is the notification for job id "c"
 		{
 			Key:         fmt.Sprintf("DATAFLOW-ERROR-a-%s", since.Add(-time.Hour*1).Format(time.RFC3339)),

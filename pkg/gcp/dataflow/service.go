@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/yannickalex07/dmon/pkg/util"
+	"github.com/yannickalex07/inframon/pkg/util"
 	dataflow "google.golang.org/api/dataflow/v1b3"
 	"google.golang.org/api/option"
 )
