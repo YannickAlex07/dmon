@@ -6,7 +6,7 @@ import (
 )
 
 type LogDestinationConfig struct {
-	Output string `yaml:"output"`
+	Level string `validate:"one_of=debug,info,warn,error" yaml:"level"`
 }
 
 func (c *LogDestinationConfig) ToDestination() inframon.Destination {
