@@ -2,46 +2,55 @@ package cli
 
 import (
 	"context"
-	"sync"
 
+	"github.com/pterm/pterm"
 	"github.com/urfave/cli/v2"
 	"github.com/yannickalex07/inframon/internal/config"
-	inframon "github.com/yannickalex07/inframon/pkg"
 )
 
 func run(c *cli.Context) error {
-	// parse config
-	config, err := config.Parse("")
-	if err != nil {
-		return err
-	}
+	pterm.DefaultBasicText.Print("Thank you for using Inframon!\n")
+	pterm.DefaultBasicText.Println("Please report any issues at github.com/yannickalex07/inframon/issues.")
 
 	// create context
 	ctx := context.Background()
 
-	// get monitors
-	mons, err := config.GetMonitors(ctx)
+	// parse config
+	configPath := c.String("config")
+
+	pterm.DefaultBasicText.Print("Parsing configuration file...\n")
+	config, err := config.Parse(configPath)
 	if err != nil {
 		return err
 	}
 
-	// run the monitors
-	var wg sync.WaitGroup
-
-	for _, mon := range mons {
-		wg.Add(1)
-
-		go func(m inframon.Monitor) {
-			defer wg.Done()
-
-			m.Start(ctx)
-		}(mon)
+	// configure logging
+	err = ConfigureLogging(config.Logging)
+	if err != nil {
+		return err
 	}
 
-	go func() {
-		wg.Wait()
-	}()
+	// get monitor
+	pterm.DefaultBasicText.Print("Creating Monitor...\n")
+	mon, err := config.GetMonitor(ctx)
+	if err != nil {
+		return err
+	}
 
+	// start monitor
+	pterm.DefaultBasicText.Println("Starting Monitor...")
+	spinner, err := pterm.DefaultSpinner.Start("Running...")
+	if err != nil {
+		return err
+	}
+
+	err = mon.Start(ctx)
+	if err != nil {
+		spinner.Fail("Monitor failed...\n")
+		return err
+	}
+
+	spinner.Success("Monitor completed!\n")
 	return nil
 }
 
@@ -56,7 +65,15 @@ func NewApp() *cli.App {
 			Name:    "run",
 			Aliases: []string{"r"},
 			Usage:   "Run the monitoring tool",
-			Action:  run,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "config",
+					Aliases:  []string{"c"},
+					Usage:    "Path to the configuration file",
+					Required: true,
+				},
+			},
+			Action: run,
 		},
 	}
 

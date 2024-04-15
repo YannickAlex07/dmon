@@ -1,30 +1,26 @@
-# dmon - Google Dataflow Monitor
+# `inframon` - Infrastructure Monitoring from the CLI
 
-`dmon` is a CLI based application to monitor Google Dataflow jobs in a GCP project and send notifications if a job fails or times-out.
+`inframon` is a tool that allows you to monitor infrastructure directly from the CLI and sent notifications to destinations of your choice. It supports targets like Google Dataflow or HTTP and destinations like Slack.
 
-### Usage
+Alternatively you can use the core components of the tool as a Go package and build your own tool around it.
 
-To use `dmon` download the newest release from the `Release`-tab of this GitHub repository.
+- [`inframon` - Infrastructure Monitoring from the CLI](#inframon---infrastructure-monitoring-from-the-cli)
+  - [Getting Started](#getting-started)
+    - [Standalone CLI Tool](#standalone-cli-tool)
+    - [Go Package](#go-package)
 
-Then create a config file (structure is documented [here](./docs/config.md)) and run `dmon` like this:
+## Getting Started
 
-```bash
-dmon -c path/to/config.yml
-```
+There are two ways you can use `inframon`, either as a standalone tool from the CLI or as a Go package. The following section describes how to use each way.
 
-### Why was it developed?
+### Standalone CLI Tool
 
-Prior to `dmon` we used Google Cloud Monitoring and Alarming to receive Slack messages when our Dataflow jobs failed or nothing if they timed out. The issue with this was mainly that the alerts that we received were often not very verbose and not helpful without digging deeper. To improve this, we wanted to develop an application that is more flexible in alerting and monitoring.
+...
 
-### How does it work?
+If you plan to use `inframon` as a CLI tool, you need to provide a configuration via a YAML-file that declares the sources you want to track, the destinations you want to notify, the state to keep track of sent notifications as well as the ...
 
-`dmon` works by periodically listing all Dataflow jobs for a specific GCP project. It then checks the update time of the status for each job and when the update happend after the last time we ran the check, it will react to the status update by notifiying so-called `handlers` about the update. It will also calculate the total runtime of each job and will notify `handlers` if the job exceeds a configured timeout.
+### Go Package
 
-`Handlers` are structs that follow the `handler`-interface and can therefore receive updates about jobs from the monitor. Currently there is only a `SlackHandler` that is used to send Slack messages when jobs timeout or fail. You can implement your own handler if you want to.
+...
 
-### Further Documentation
 
-To find more information on how to use dmon, check the following documents:
-
-* [Config](./docs/config.md)
-* [Release](./docs/release.md)

@@ -1,6 +1,6 @@
 # Config
 
-`dmon` offers quite a few configuration options that are available through the config file. This config file is a simple `yaml`-file that gets read during startup of the monitor. Here is an example of a full config:
+
 
 ```yml
 request_interval: 2 # request every 2 minutes

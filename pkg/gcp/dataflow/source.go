@@ -3,10 +3,10 @@ package dataflow
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/url"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	inframon "github.com/yannickalex07/inframon/pkg"
 )
 
@@ -17,7 +17,7 @@ const (
 	timeoutNotification = "TIMEOUT"
 )
 
-// Checker
+// Source
 
 // A source to get notifications from Dataflow.
 // Will check for failed jobs as well as batch jobs that run for too long.
@@ -35,45 +35,51 @@ type DataflowSource struct {
 
 func (c DataflowSource) Check(ctx context.Context, since time.Time) ([]inframon.Notification, error) {
 	// list all jobs
-	log.Println("listing jobs")
 	jobs, err := c.Service.ListJobs(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("found %d jobs", len(jobs))
+	log.Debugf("Found %d jobs", len(jobs))
 	notifications := []inframon.Notification{}
 	for _, job := range jobs {
+		contextLogger := log.WithFields(log.Fields{
+			"job_id":     job.Id,
+			"job_status": job.Status.Status,
+		})
+
 		// filter down jobs by the provided filter
 		if c.JobFilter != nil && !c.JobFilter(job) {
+			contextLogger.Debug("Job skipped because it doesn't match the filter")
 			continue
 		}
 
 		// check all updated jobs
 		if job.Status.UpdatedAt.After(since) {
-			log.Printf("checking udpated job: %s", job.Id)
+			contextLogger.Debug("Checking udpated job")
+
 			// check if the job failed
 			if job.Status.IsFailed() {
-				log.Printf("job failed: %s", job.Id)
+				contextLogger.Debug("Job has failed since last check")
 
 				// request error logs
 				logs := []string{}
 
-				log.Println("fetching logs")
+				contextLogger.Debug("Fetching logs")
 				l, err := c.Service.GetLogs(ctx, job.Id, LEVEL_ERROR)
 				if err != nil {
 					// log error event
+					contextLogger.WithField("err", err).Error("Failed to fetch logs")
 					logs = append(logs, "Failed to fetch logs...")
-					log.Printf("failed to fetch logs: %v", err)
 				} else {
-					log.Println("fetched logs")
+					contextLogger.Debug("Fetched logs")
 					for _, m := range l {
 						logs = append(logs, m.Text)
 					}
 				}
 
 				// create the notification
-				log.Println("creating notification")
+				contextLogger.Debug("Creating notification")
 				n := inframon.Notification{
 					Key:         c.createNotificationKey(errNotification, job.Id, job.StartTime),
 					Title:       "❌ Dataflow Job Failed",
@@ -82,7 +88,11 @@ func (c DataflowSource) Check(ctx context.Context, since time.Time) ([]inframon.
 					Links:       c.links(job),
 				}
 
-				log.Printf("created notification: Title(%s) && Description(%s)", n.Title, n.Description)
+				contextLogger.WithFields(log.Fields{
+					"title":       n.Title,
+					"description": n.Description,
+					"key":         n.Key,
+				}).Debug("Created notification")
 
 				notifications = append(notifications, n)
 			}
@@ -90,9 +100,11 @@ func (c DataflowSource) Check(ctx context.Context, since time.Time) ([]inframon.
 
 		// check runtime of running batch jobs
 		if !job.IsStreaming() && job.Status.IsRunning() {
-			log.Printf("checking runtime of job: %s", job.Id)
+			runtime := job.Runtime()
+			contextLogger.WithField("runtime", runtime).Debug("Checking runtime")
+
 			if job.Runtime() >= c.Timeout {
-				log.Printf("job is running for too long: %s", job.Id)
+				contextLogger.Debug("Job crossed timeout limit")
 				n := inframon.Notification{
 					Key:         c.createNotificationKey(timeoutNotification, job.Id, job.StartTime),
 					Title:       "⏱️ Dataflow Job Running For Too Long",
@@ -101,7 +113,12 @@ func (c DataflowSource) Check(ctx context.Context, since time.Time) ([]inframon.
 					Links:       c.links(job),
 				}
 
-				log.Printf("created notification: %v", n)
+				contextLogger.WithFields(log.Fields{
+					"title":       n.Title,
+					"description": n.Description,
+					"key":         n.Key,
+				}).Debug("Created notification")
+
 				notifications = append(notifications, n)
 			}
 		}

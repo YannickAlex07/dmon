@@ -3,9 +3,9 @@ package slack
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	inframon "github.com/yannickalex07/inframon/pkg"
 )

@@ -3,9 +3,9 @@ package dataflow
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/yannickalex07/inframon/pkg/util"
 	dataflow "google.golang.org/api/dataflow/v1b3"
 	"google.golang.org/api/option"
