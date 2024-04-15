@@ -86,10 +86,13 @@ func TestDataflowServiceListJobs(t *testing.T) {
 	defer server.Close()
 
 	// create service with overridden endpoint
-	service := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
+	service, err := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
 		option.WithoutAuthentication(),
 		option.WithEndpoint(server.URL),
 	})
+	if err != nil {
+		assert.FailNow(t, "failed to create dataflow service with: %v", err)
+	}
 
 	// Act
 	jobs, err := service.ListJobs(ctx)
@@ -132,10 +135,13 @@ func TestDataflowServiceListJobsWithInvalidStartTime(t *testing.T) {
 
 	defer server.Close()
 
-	service := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
+	service, err := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
 		option.WithoutAuthentication(),
 		option.WithEndpoint(server.URL),
 	})
+	if err != nil {
+		assert.FailNow(t, "failed to create dataflow service with: %v", err)
+	}
 
 	// Act
 	jobs, err := service.ListJobs(ctx)
@@ -179,10 +185,13 @@ func TestDataflowServiceListJobsWithInvalidUpdatedTime(t *testing.T) {
 
 	defer server.Close()
 
-	service := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
+	service, err := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
 		option.WithoutAuthentication(),
 		option.WithEndpoint(server.URL),
 	})
+	if err != nil {
+		assert.FailNow(t, "failed to create dataflow service with: %v", err)
+	}
 
 	// Act
 	jobs, err := service.ListJobs(ctx)
@@ -233,10 +242,13 @@ func TestDataflowServiceGetLogs(t *testing.T) {
 
 	defer server.Close()
 
-	service := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
+	service, err := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
 		option.WithoutAuthentication(),
 		option.WithEndpoint(server.URL),
 	})
+	if err != nil {
+		assert.FailNow(t, "failed to create dataflow service with: %v", err)
+	}
 
 	// Act
 	logs, err := service.GetLogs(ctx, "my-job", dataflow.LEVEL_ERROR)
@@ -276,10 +288,13 @@ func TestDataflowServiceGetLogsWithInvalidTime(t *testing.T) {
 
 	defer server.Close()
 
-	service := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
+	service, err := dataflow.NewDataflowService(ctx, "project", "location", []option.ClientOption{
 		option.WithoutAuthentication(),
 		option.WithEndpoint(server.URL),
 	})
+	if err != nil {
+		assert.FailNow(t, "failed to create dataflow service with: %v", err)
+	}
 
 	// Act
 	logs, err := service.GetLogs(ctx, "my-job", dataflow.LEVEL_ERROR)

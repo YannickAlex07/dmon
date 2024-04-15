@@ -4,5 +4,5 @@ test:
 
 .PHONY: coverage
 coverage:
-	go test ./... -coverpkg=./... -coverprofile coverage.out
+	go test ./pkg/... -coverpkg=./... -coverprofile coverage.out
 	go tool cover -html=coverage.out

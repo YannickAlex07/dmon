@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"context"
-
 	"github.com/pterm/pterm"
 	"github.com/urfave/cli/v2"
 	"github.com/yannickalex07/inframon/internal/config"
@@ -11,9 +9,6 @@ import (
 func run(c *cli.Context) error {
 	pterm.DefaultBasicText.Print("Thank you for using Inframon!\n")
 	pterm.DefaultBasicText.Println("Please report any issues at github.com/yannickalex07/inframon/issues.")
-
-	// create context
-	ctx := context.Background()
 
 	// parse config
 	configPath := c.String("config")
@@ -32,19 +27,26 @@ func run(c *cli.Context) error {
 
 	// get monitor
 	pterm.DefaultBasicText.Print("Creating Monitor...\n")
-	mon, err := config.GetMonitor(ctx)
+	mon, err := config.GetMonitor(c.Context)
 	if err != nil {
 		return err
 	}
 
-	// start monitor
+	// create spinner
 	pterm.DefaultBasicText.Println("Starting Monitor...")
 	spinner, err := pterm.DefaultSpinner.Start("Running...")
 	if err != nil {
 		return err
 	}
 
-	err = mon.Start(ctx)
+	// starting monitor
+	err = nil
+	if config.Schedule.Cron != "" {
+		err = mon.StartWithSchedule(c.Context, config.Schedule.Cron)
+	} else {
+		err = mon.Start(c.Context)
+	}
+
 	if err != nil {
 		spinner.Fail("Monitor failed...\n")
 		return err

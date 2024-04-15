@@ -13,7 +13,10 @@ type DataflowSourceConfig struct {
 }
 
 func (c *DataflowSourceConfig) ToSource(ctx context.Context) (inframon.Source, error) {
-	service := dataflow.NewDataflowService(ctx, c.Project, c.Location, nil)
+	service, err := dataflow.NewDataflowService(ctx, c.Project, c.Location, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	s := dataflow.DataflowSource{
 		Service: service,

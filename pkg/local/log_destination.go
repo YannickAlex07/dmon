@@ -10,6 +10,6 @@ import (
 type LogDestination struct{}
 
 func (*LogDestination) Handle(ctx context.Context, notification inframon.Notification) error {
-	log.Infof("notification: %+v", notification)
+	log.Infof("Received Notification: %+v", notification)
 	return nil
 }

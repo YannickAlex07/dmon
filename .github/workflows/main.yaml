@@ -18,7 +18,7 @@ jobs:
           go-version: "1.21"
 
       - name: Collect Coverage
-        run: go test ./... -race -coverprofile=coverage.out -covermode=atomic
+        run: go test ./pkg/... -coverpkg=./... -coverprofile=coverage.out -covermode=atomic -race
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
