@@ -9,16 +9,11 @@ import (
 )
 
 type SourcesConfig struct {
-	HTTP     []sources.HTTPSourceConfig     `yaml:"http"`
 	Dataflow []sources.DataflowSourceConfig `yaml:"dataflow"`
 }
 
 func (c *SourcesConfig) Get(ctx context.Context) ([]inframon.Source, error) {
 	var s []inframon.Source
-
-	// for _, h := range c.HTTP {
-	// 	s = append(s, h.ToSource())
-	// }
 
 	for _, d := range c.Dataflow {
 		ds, err := d.ToSource(ctx)
